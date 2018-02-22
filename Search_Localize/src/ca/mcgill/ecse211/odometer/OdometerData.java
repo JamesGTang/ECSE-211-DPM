@@ -39,6 +39,7 @@ public class OdometerData {
    * instance of this class is ever created.
    */
   protected OdometerData() {
+	System.out.println("Odomter thread started success!");
     this.x = 0;
     this.y = 0;
     this.theta = 0;
@@ -125,6 +126,61 @@ public class OdometerData {
 	  }
 	  return ang;
   }
+  
+  /**
+   * Return the Odomometer x.
+   * <p>
+   * 
+   * @return the odometer x
+   */
+  public double getX() {
+	  double xCurrrent=0;
+	  lock.lock();
+	  try {
+		  while(isReseting) {
+			  // If a reset operation is being executed, wait
+		      // until it is over.
+			  doneReseting.await();
+			  // Using await() is lighter on the CPU
+		       // than simple busy wait.
+		  }
+		  
+		 xCurrrent = x;
+	  }catch(InterruptedException e) {
+		  e.printStackTrace();
+	  }finally{
+		  lock.unlock();
+	  }
+	  return xCurrrent;
+  }
+  
+  /**
+   * Return the Odomometer y.
+   * <p>
+   * 
+   * @return the odometer y
+   */
+  public double getY() {
+	  double yCurrrent=0;
+	  lock.lock();
+	  try {
+		  while(isReseting) {
+			  // If a reset operation is being executed, wait
+		      // until it is over.
+			  doneReseting.await();
+			  // Using await() is lighter on the CPU
+		       // than simple busy wait.
+		  }
+		  
+		 yCurrrent = x;
+	  }catch(InterruptedException e) {
+		  e.printStackTrace();
+	  }finally{
+		  lock.unlock();
+	  }
+	  return yCurrrent;
+  }
+
 
   /**
    * Adds dx, dy and dtheta to the current values of x, y and theta, respectively. Useful for

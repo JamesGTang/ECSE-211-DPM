@@ -1,5 +1,9 @@
 package ca.mcgill.ecse211.model;
 
+import ca.mcgill.ecse211.display.Display;
+import ca.mcgill.ecse211.odometer.Odometer;
+import ca.mcgill.ecse211.odometer.OdometerExceptions;
+import ca.mcgill.ecse211.odometer.OdometryCorrection;
 import ca.mcgill.ecse211.ultrasonic.UltrasonicController;
 import ca.mcgill.ecse211.util.*;
 
@@ -29,17 +33,48 @@ import lejos.robotics.SampleProvider;
  *	Ultrasonic base motor: Motor Port C
  */
 public class Robot {
-	// basic data measurement of robot-specific data
+	// robot drive system related data
 	public static final double WHEEL_RAD = 2.2;
 	public static final double TRACK = 15.8;
 	public static final double TILE_SIZE = 30.48;
-	private static final int FORWARD_SPEED = 100;
+	private static final int FORWARD_SPEED = 150;
+	private static final int ACCELERATION_SPEED=100;
 	private static final int ROTATE_SPEED = 100;
-	public static double lsOffset=2.0; // distance of light sensor to wheel axis
+	
+	// robot sensor placement data
+	public static double floorSensorOffset=2.0; // distance of light sensor to wheel axis
+	public static final double forwardLightSensorOffset=1.5; // how far the forward facing light sensor is from the ultrasonic sensor
 	public static int usMotorAngle=0;
 	private static double OFF_CONST=1.02;
+	
+	// robot state related data
 	public static DriveState driveState;
 	public static LocalizationCategory loc;
+	public static int Starting_Corner=-1;
+	
+	// odometry related object
+	public static Odometer odometer;
+	public static Display odometryDisplay;
+	
+	/**
+	 * This method initialize the robot into original state
+	 * @throws OdometerExceptions 
+	 */
+	public static int init() throws OdometerExceptions {
+		System.out.println("Robot initialized with odometer, odometer display");
+		driveState=DriveState.STOP;
+		loc=LocalizationCategory.NONE;
+		
+		// Odometer related objects
+		odometer = Odometer.getOdometer(Robot.leftMotor, Robot.rightMotor, Robot.TRACK, Robot.WHEEL_RAD);
+		odometryDisplay = new Display(Robot.lcd);
+		
+		Thread odoThread = new Thread(odometer);
+		odoThread.start();
+		Thread odoDisplayThread = new Thread(odometryDisplay);
+		odoDisplayThread.start();		
+		return 1;
+	}
 	
 	// locType and state of the robot
 	public enum LocalizationCategory {
@@ -55,15 +90,6 @@ public class Robot {
 		TURN,
 		TRAVEL;
 	};
-	/**
-	 * This method initialize the robot into original state
-	 */
-	public static int init() {
-		driveState=DriveState.STOP;
-		loc=LocalizationCategory.NONE;
-		return 1;
-	}
-	
 	
 	// define motors
 	public static final EV3LargeRegulatedMotor leftMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("B"));
@@ -74,10 +100,10 @@ public class Robot {
 	 * This method put the robot in a fixed speed drive forward
 	 */
 	public static void driveForward() {
-		leftMotor.setSpeed(100);
-		rightMotor.setSpeed(100);
-		leftMotor.setAcceleration(100);
-		rightMotor.setAcceleration(100);
+		leftMotor.setSpeed(FORWARD_SPEED);
+		rightMotor.setSpeed(FORWARD_SPEED);
+		leftMotor.setAcceleration(ACCELERATION_SPEED);
+		rightMotor.setAcceleration(ACCELERATION_SPEED);
 		leftMotor.forward();
 		rightMotor.forward();
 	}
@@ -86,10 +112,10 @@ public class Robot {
 	 * This method put the robot in a fixed speed drive backward
 	 */
 	public static void driveBackward() {
-		leftMotor.setSpeed(100);
-		rightMotor.setSpeed(100);
-		leftMotor.setAcceleration(100);
-		rightMotor.setAcceleration(100);
+		leftMotor.setSpeed(FORWARD_SPEED);
+		rightMotor.setSpeed(FORWARD_SPEED);
+		leftMotor.setAcceleration(ACCELERATION_SPEED);
+		rightMotor.setAcceleration(ACCELERATION_SPEED);
 		leftMotor.forward();
 		rightMotor.forward();
 	}
@@ -99,10 +125,10 @@ public class Robot {
 	 * @param int direction: -1: turn left, 1: turn right
 	 */
 	public static void turn(String direction) {
-		Robot.leftMotor.setSpeed(100);
-		Robot.rightMotor.setSpeed(100);
-		Robot.leftMotor.setAcceleration(100);
-		Robot.rightMotor.setAcceleration(100);
+		Robot.leftMotor.setSpeed(FORWARD_SPEED);
+		Robot.rightMotor.setSpeed(FORWARD_SPEED);
+		Robot.leftMotor.setAcceleration(ACCELERATION_SPEED);
+		Robot.rightMotor.setAcceleration(ACCELERATION_SPEED);
 		
 		if(direction=="LEFT") {
 			Robot.leftMotor.forward();
@@ -131,8 +157,8 @@ public class Robot {
 		 * acceleration
 		 */
 		thetaDest=thetaDest/OFF_CONST;
-		leftMotor.setAcceleration(100);
-		rightMotor.setAcceleration(100);
+		leftMotor.setAcceleration(ACCELERATION_SPEED);
+		rightMotor.setAcceleration(ACCELERATION_SPEED);
 		leftMotor.setSpeed(ROTATE_SPEED);
 		rightMotor.setSpeed(ROTATE_SPEED);
 		thetaDest = Math.toDegrees(thetaDest);
@@ -145,27 +171,28 @@ public class Robot {
 	}
 	
 	/**
-	 * This method drives robot to a specific location
-	 * @author jamestang
-	 * @param xDest: x coordinate in cm
-	 * @param yDest: y coordinate in cm
+	 * This method drives robot straight for a distance
+	 * @param linearDistance the distance to be covered
 	 */
 	public static void travelTo(double linearDistance) {
 		// move the linear distance possible improvement here
-		leftMotor.setAcceleration(100);
-		rightMotor.setAcceleration(100);
+		leftMotor.setAcceleration(ACCELERATION_SPEED);
+		rightMotor.setAcceleration(ACCELERATION_SPEED);
 		leftMotor.setSpeed(FORWARD_SPEED);
 		rightMotor.setSpeed(FORWARD_SPEED);
 		leftMotor.rotate(robotUtil.convertDistance(WHEEL_RAD, linearDistance), true);
 		rightMotor.rotate(robotUtil.convertDistance(WHEEL_RAD, linearDistance), false);
 	}
 	/**
-	 * This method drives robot to a specific location
+	 * This method drives robot to a specific location using euclidean distance for shortest path
 	 * @param xDest: x coordinate in cm
 	 * @param yDest: y coordinate in cm
 	 */
-	public static void travelTo(double xCurrent,double yCurrent,double thetaCurrent,double xDest,double yDest) {
+	public static void travelTo(double xDest,double yDest) {
 		// convert coordinate to length
+		double xCurrent=odometer.getX();
+		double yCurrent=odometer.getY();
+		double thetaCurrent=odometer.getTheta();
 		System.out.println("In the model: xDest,yDest"+xDest+" "+yDest);
 		double dX=xDest-xCurrent;
 		double dY=yDest-yCurrent;
@@ -189,13 +216,38 @@ public class Robot {
 		}
 		turnTo(angularDistance);
 		// move the linear distance possible improvement here
-		leftMotor.setAcceleration(100);
-		rightMotor.setAcceleration(100);
-		leftMotor.setSpeed(FORWARD_SPEED);
-		rightMotor.setSpeed(FORWARD_SPEED);
-		leftMotor.rotate(robotUtil.convertDistance(WHEEL_RAD, linearDistance), true);
-		rightMotor.rotate(robotUtil.convertDistance(WHEEL_RAD, linearDistance), false);
+		travelTo(linearDistance);
 	}
+	/**
+	 * This method drives robot to the destination point (x,y) selecting only paths that
+	 * are perpendicular to x axis or y axis, it helps to avoid cross the search zone if the search zone is obstructing
+	 * the robot from starting corner to start of search zone
+	 * @param xDest: destination x
+	 * @param yDest: destination y
+	 */
+	public static void squareTravelTo(double xDest,double yDest) {
+		double xCurrent=odometer.getX();
+		double yCurrent=odometer.getY();
+		
+		// convert coordinate to length
+		double dX=xDest-xCurrent;
+		double dY=yDest-yCurrent;
+		Robot.travelTo(dY);
+		// calculate the angle to be turned before covering dx. first find the heading angle
+		double thetaCurrent=odometer.getTheta();
+		double angularDistance=Math.atan2(dX,dY)-Math.toRadians(thetaCurrent);
+		if(angularDistance>Math.PI) {
+			// the angular disance will be negaive
+			angularDistance = angularDistance-2*Math.PI;
+		}else if(angularDistance < (-Math.PI)) {
+			// if needs to turn more than -180 degree
+			angularDistance = angularDistance+2*Math.PI;
+		}
+		turnTo(angularDistance);
+		travelTo(dX);
+	}
+	
+	
 	
 	// define Ultrasonic sensor
 	public static SensorModes usSensor = new EV3UltrasonicSensor(SensorPort.S4); // the instance
