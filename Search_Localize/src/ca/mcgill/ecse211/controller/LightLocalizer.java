@@ -57,10 +57,9 @@ public class LightLocalizer {
 		odometer.setXYT(0, 0, 0);
 		// add correction here
 		System.out.println("dX: "+dX+"dY: "+dY);
-		Robot.travelTo(0,0, 0,dX , dY);
+		Robot.travelTo(dX , dY);
 		System.out.println("Aligning"+(270-odometer.getTheta()));
 		Robot.turnTo(Math.toRadians(270-odometer.getTheta()));
-		// reset odometer
-		odometer.setXYT(0, 0, 0);
+		
 	}	
 }

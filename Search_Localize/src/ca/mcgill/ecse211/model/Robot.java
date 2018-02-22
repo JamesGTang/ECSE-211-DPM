@@ -60,10 +60,11 @@ public class Robot {
 	 * This method initialize the robot into original state
 	 * @throws OdometerExceptions 
 	 */
-	public static int init() throws OdometerExceptions {
+	public static int init(int startingPoint) throws OdometerExceptions {
 		System.out.println("Robot initialized with odometer, odometer display");
 		driveState=DriveState.STOP;
 		loc=LocalizationCategory.NONE;
+		Starting_Corner=startingPoint;
 		
 		// Odometer related objects
 		odometer = Odometer.getOdometer(Robot.leftMotor, Robot.rightMotor, Robot.TRACK, Robot.WHEEL_RAD);
@@ -232,6 +233,7 @@ public class Robot {
 		// convert coordinate to length
 		double dX=xDest-xCurrent;
 		double dY=yDest-yCurrent;
+		System.out.println("Covering dy to starting point");
 		Robot.travelTo(dY);
 		// calculate the angle to be turned before covering dx. first find the heading angle
 		double thetaCurrent=odometer.getTheta();
@@ -244,6 +246,7 @@ public class Robot {
 			angularDistance = angularDistance+2*Math.PI;
 		}
 		turnTo(angularDistance);
+		System.out.println("Covering dx to starting point");
 		travelTo(dX);
 	}
 	
@@ -319,6 +322,41 @@ public class Robot {
 			System.out.println("US motor is stalled");
 		}
 		return ret;		
+	}
+	/**
+	 * This method sets the odometer based on which starting corner
+	 * the robot is assigned to
+	 * important: the robot has x and y offset of one tile length from the origin after localization
+	 */
+	public static void setSCOdometer() {
+		if(Starting_Corner!=-1) {
+			switch (Starting_Corner) {
+			case 0:
+				// the robot is starting at lower left
+				odometer.setXYT(TILE_SIZE , TILE_SIZE , 0);
+				System.out.println("Robot starting from: "+Starting_Corner);
+				break;
+			case 1:
+				// the robot is starting at lower right
+				odometer.setXYT(TILE_SIZE*7, TILE_SIZE , 0);
+				System.out.println("Robot starting from: "+Starting_Corner);
+				break;
+			case 2:
+				// the robot is starting at upper right
+				odometer.setXYT(TILE_SIZE*7 , TILE_SIZE*7 , 180);
+				System.out.println("Robot starting from: "+Starting_Corner);
+				break;
+			case 3:
+				// the robot is starting at upper right
+				odometer.setXYT(TILE_SIZE*7 , TILE_SIZE, 180);
+				System.out.println("Robot starting from: "+Starting_Corner);
+				break;
+			default:
+				break;
+			}
+		}else {
+			// starting corner is not set
+		}
 	}
 	
 	public void clearLCD() {

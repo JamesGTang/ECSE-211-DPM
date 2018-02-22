@@ -211,7 +211,7 @@ public class OdometerData {
    * 
    * @param x the value of x
    * @param y the value of y
-   * @param theta the value of theta
+   * @param theta the value of theta in degrees
    */
   public void setXYT(double x, double y, double theta) {
     lock.lock();

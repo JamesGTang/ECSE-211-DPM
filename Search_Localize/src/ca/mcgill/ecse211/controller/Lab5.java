@@ -85,7 +85,7 @@ public class Lab5 {
 						
 		} else if(buttonChoice==Button.ID_RIGHT) {
 			// start all threads and all robot in-class services
-			Robot.init();
+			Robot.init(coordinates[5]);
 			// do not start correction yet
 			Thread odocorrectionThread=new Thread(odometryCorrection);		
 			UltrasonicLocalizer usLocal = new UltrasonicLocalizer(Odometer.getOdometer());
@@ -114,7 +114,9 @@ public class Lab5 {
 			System.out.println("Complete Light Loc");*/
 			// ToDo: implement search method
 			//p1: navigate to the point of the starting point
-			// setting the values
+			// set the odometer data accordingly
+			Robot.setSCOdometer();
+
 			if(LocalizationData.setAll(coordinates)) {
 				// setting is success
 				System.out.println("Coordinate updated!"+LocalizationData.print());
@@ -131,17 +133,14 @@ public class Lab5 {
 			System.out.println("Travel to center of tile for start");
 			Robot.travelTo(-Robot.TILE_SIZE/2, Robot.TILE_SIZE/2);
 			Robot.turnTo(Math.toRadians(45));// move in y direction a distance of dy
-			System.out.println("After going to middle of tile:"+Odometer.getOdometer().getXYT().toString());
-			System.out.println("Covering dy to starting point");
-			Robot.travelTo(LocalizationData.getLLy()*Robot.TILE_SIZE);
-			// turn and cover dx
-			Robot.turnTo(Math.toRadians(90));
-			System.out.println("Covering dx to starting point");
-			Robot.travelTo(LocalizationData.getLLx()*Robot.TILE_SIZE);
+			System.out.println("After going to middle of tile,"+Odometer.getOdometer().getXYT().toString());
+			System.out.println("Go to starting point of search");
+			Robot.squareTravelTo(LocalizationData.getLLx()*Robot.TILE_SIZE,LocalizationData.getLLy()*Robot.TILE_SIZE);
 			System.out.println("Stopping odometer correction thread");
 			// ToDo: use in thread stop machanism to stop the thread
 			odocorrectionThread.stop();
-			Sound.twoBeeps();
+			// now start search
+			
 			
 			Robot.lcd.drawString("Finished", 0, 1);
 			while (Button.waitForAnyPress() != Button.ID_ESCAPE);
