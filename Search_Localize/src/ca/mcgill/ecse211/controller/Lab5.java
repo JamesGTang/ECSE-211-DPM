@@ -2,7 +2,6 @@ package ca.mcgill.ecse211.controller;
 
 import ca.mcgill.ecse211.odometer.*;
 import ca.mcgill.ecse211.data.LocalizationData;
-import ca.mcgill.ecse211.display.Display;
 import ca.mcgill.ecse211.lightsensor.ColorTest;
 import ca.mcgill.ecse211.lightsensor.LightSensorController;
 import ca.mcgill.ecse211.model.*;
@@ -22,6 +21,8 @@ public class Lab5 {
 	public static void main(String[] args) throws OdometerExceptions {
 
 		int buttonChoice;
+		// start all threads and all robot in-class services
+		Robot.init(coordinates[5]);
 		odometryCorrection=new OdometryCorrection(0);
 		//System.out.println("Console output directed to terminal");
 		
@@ -51,29 +52,7 @@ public class Lab5 {
 							
 							@Override
 							public void processLightData(int tb) {
-								/*
-								if(tb!=-1) {
-									// the color is valid
-									Robot.lcd.clear();
-									Robot.lcd.drawString("Color detected",0, 0);
-									switch (tb) {
-									case 1:
-										Robot.lcd.drawString("Red",0, 1);
-										break;
-									case 2:
-										Robot.lcd.drawString("Blue",0, 1);
-										break;
-									case 3:
-										Robot.lcd.drawString("Yellow",0, 1);
-										break;
-									case 4:
-										Robot.lcd.drawString("White",0, 1);
-										break;
-									default:
-										break;
-									}
-								}
-								*/
+								
 							}
 						};
 						Robot.lcd.clear();
@@ -84,8 +63,7 @@ public class Lab5 {
 						System.exit(0);
 						
 		} else if(buttonChoice==Button.ID_RIGHT) {
-			// start all threads and all robot in-class services
-			Robot.init(coordinates[5]);
+
 			// do not start correction yet
 			Thread odocorrectionThread=new Thread(odometryCorrection);		
 			UltrasonicLocalizer usLocal = new UltrasonicLocalizer(Odometer.getOdometer());
@@ -95,6 +73,8 @@ public class Lab5 {
 			/*
 			// update the robot model
 			Robot.loc=Robot.LocalizationCategory.FALLING_EDGE;
+			// temporary alter speed to slowest for accurate correction
+			Robot.alterSpeed("COR");
 			System.out.println("US localization: "+Robot.loc);
 			// do something with localizer
 			System.out.println("Start localization method");
@@ -103,20 +83,15 @@ public class Lab5 {
 			Sound.twoBeeps();
 			System.out.println("Complete Ultrasonic Loc");
 			
-			// wait for light sensor input
-			// ToDo: this line should be removed before final submission
-			Robot.lcd.drawString("Press any Light Loc", 0, 1);
-			buttonChoice = Button.waitForAnyPress();
-			
-			LightLocalizer newLightLoc=new LightLocalizer(odometer);
+			LightLocalizer newLightLoc=new LightLocalizer(Odometer.getOdometer());
 			newLightLoc.localize();
 			Sound.twoBeeps();
-			System.out.println("Complete Light Loc");*/
+			System.out.println("Complete Light Loc");
 			// ToDo: implement search method
 			//p1: navigate to the point of the starting point
-			// set the odometer data accordingly
+			// set the odometer data accordingly*/
 			Robot.setSCOdometer();
-
+			
 			if(LocalizationData.setAll(coordinates)) {
 				// setting is success
 				System.out.println("Coordinate updated!"+LocalizationData.print());
@@ -129,19 +104,31 @@ public class Lab5 {
 			 * ToDo: here we should use odometry correction to make sure the odometer is in sync with robot's actual location
 			 */
 			// we start the odometer correction thread first
-			odocorrectionThread.start();
+			// change the speed back for small turn
+			Robot.alterSpeed("SEARCH");
 			System.out.println("Travel to center of tile for start");
-			Robot.travelTo(-Robot.TILE_SIZE/2, Robot.TILE_SIZE/2);
+			Robot.turnTo(Math.toRadians(-45));
+			Robot.travelTo(21.55);
 			Robot.turnTo(Math.toRadians(45));// move in y direction a distance of dy
-			System.out.println("After going to middle of tile,"+Odometer.getOdometer().getXYT().toString());
+			System.out.println("After going to middle of tile x/y"+Odometer.getOdometer().getXYT()[0]+"|"+Odometer.getOdometer().getXYT()[1]);
 			System.out.println("Go to starting point of search");
-			Robot.squareTravelTo(LocalizationData.getLLx()*Robot.TILE_SIZE,LocalizationData.getLLy()*Robot.TILE_SIZE);
+			odocorrectionThread.start();
+			// change the speed back for small turn
+			Robot.alterSpeed("DRIVE");
+			Robot.squareTravelTo((LocalizationData.getLLx()-0.5)*Robot.TILE_SIZE,(LocalizationData.getLLy()-1.5)*Robot.TILE_SIZE);
+			System.out.println("Arriving at SC, x/y/theta"+Odometer.getOdometer().getXYT()[0]+"|"+Odometer.getOdometer().getXYT()[1]+"|"+Odometer.getOdometer().getTheta());
 			System.out.println("Stopping odometer correction thread");
 			// ToDo: use in thread stop machanism to stop the thread
+			// turn the sensor in right direction
+			Robot.usMotor.rotate(-180);
 			odocorrectionThread.stop();
 			// now start search
-			
-			
+			SearchTargetBlock newSearch=new SearchTargetBlock(coordinates[4]);
+			UltrasonicPoller usSearchPoller = new UltrasonicPoller(Robot.usDistance, Robot.usData,newSearch);	
+			// run ultrasonic thread last to save resources
+			usSearchPoller.start();
+			newSearch.SearchTarget();
+			System.out.println("Search finished");	
 			Robot.lcd.drawString("Finished", 0, 1);
 			while (Button.waitForAnyPress() != Button.ID_ESCAPE);
 			System.exit(0);

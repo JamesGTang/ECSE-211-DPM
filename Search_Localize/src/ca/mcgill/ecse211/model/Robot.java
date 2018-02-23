@@ -3,7 +3,6 @@ package ca.mcgill.ecse211.model;
 import ca.mcgill.ecse211.display.Display;
 import ca.mcgill.ecse211.odometer.Odometer;
 import ca.mcgill.ecse211.odometer.OdometerExceptions;
-import ca.mcgill.ecse211.odometer.OdometryCorrection;
 import ca.mcgill.ecse211.ultrasonic.UltrasonicController;
 import ca.mcgill.ecse211.util.*;
 
@@ -30,20 +29,20 @@ import lejos.robotics.SampleProvider;
  *	Motors:
  *	Left motor: Motor Port D
  *	Right motor: Motor Port B
- *	Ultrasonic base motor: Motor Port C
+ *	Ultrasonic base motor: Motor Port A
  */
 public class Robot {
 	// robot drive system related data
 	public static final double WHEEL_RAD = 2.2;
 	public static final double TRACK = 15.8;
 	public static final double TILE_SIZE = 30.48;
-	private static final int FORWARD_SPEED = 150;
-	private static final int ACCELERATION_SPEED=100;
+	private static int FORWARD_SPEED = 150;
+	private static int ACCELERATION_SPEED=100;
 	private static final int ROTATE_SPEED = 100;
 	
 	// robot sensor placement data
 	public static double floorSensorOffset=2.0; // distance of light sensor to wheel axis
-	public static double usSensorOffset=2.0;
+	public static double usSensorOffset=7.0;
 	public static final double forwardLightSensorOffset=1.5; // how far the forward facing light sensor is from the ultrasonic sensor
 	public static int usMotorAngle=0;
 	private static double OFF_CONST=1.02;
@@ -96,7 +95,7 @@ public class Robot {
 	// define motors
 	public static final EV3LargeRegulatedMotor leftMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("B"));
 	public static final EV3LargeRegulatedMotor rightMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
-	public static final EV3LargeRegulatedMotor usMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("C"));
+	public static final EV3LargeRegulatedMotor usMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
 	
 	/**
 	 * This method put the robot in a fixed speed drive forward
@@ -250,17 +249,15 @@ public class Robot {
 		Robot.travelTo(dY);
 		// calculate the angle to be turned before covering dx. first find the heading angle
 		double thetaCurrent=odometer.getTheta();
-		double angularDistance=Math.atan2(dX,dY)-Math.toRadians(thetaCurrent);
-		if(angularDistance>Math.PI) {
-			// the angular disance will be negaive
-			angularDistance = angularDistance-2*Math.PI;
-		}else if(angularDistance < (-Math.PI)) {
-			// if needs to turn more than -180 degree
-			angularDistance = angularDistance+2*Math.PI;
-		}
+		System.out.println("theta current: "+thetaCurrent);
+		double angularDistance;
+		if(xDest>=odometer.getX()) angularDistance=Math.toRadians(90);
+		else angularDistance=Math.toRadians(-90);
 		turnTo(angularDistance);
 		System.out.println("Covering dx to starting point");
 		travelTo(dX);
+		// turn back to align with y axis
+		turnTo(-angularDistance);
 	}
 	
 	
@@ -371,7 +368,26 @@ public class Robot {
 			// starting corner is not set
 		}
 	}
-	
+	/**
+	 * Method to alter the speed of the robot
+	 * DRIVE: fastest, for navigation to a destination, 
+	 * SEARCH: medium, for searching and scanning the area
+	 * COR: slowest, for correcting robot's postion
+	 * 
+	 * @param type
+	 */
+	public static void alterSpeed(String type) {
+		if(type=="DRIVE") {
+			FORWARD_SPEED = 150;
+			ACCELERATION_SPEED=100;
+		}else if(type=="SEARCH") {
+			FORWARD_SPEED = 100;
+			ACCELERATION_SPEED=75;
+		}else if(type=="COR") {
+			FORWARD_SPEED = 50;
+			ACCELERATION_SPEED=50;
+		}
+	}
 	public void clearLCD() {
 		lcd.clear();
 	}

@@ -28,7 +28,7 @@ public class Search implements UltrasonicController{
 		this.tb=tb;
 		this.odometer=Odometer.getOdometer();
 		// rotate the ultrasonic sensor so it is facing the side
-		Robot.usMotor.rotate(-90);
+		Robot.usMotor.rotate(-180);
 		xQuadrantDistance=(LocalizationData.getURx()-LocalizationData.getLLx())/2*Robot.TILE_SIZE;
 		yQuadrantDistance=(LocalizationData.getURy()-LocalizationData.getLLy())/2*Robot.TILE_SIZE;
 		System.out.println("Valid x/y: "+xQuadrantDistance+" "+yQuadrantDistance);
@@ -45,14 +45,14 @@ public class Search implements UltrasonicController{
 				// robot heading alone y
 				double linearDistance=(LocalizationData.getURy()-LocalizationData.getLLy()+1)*Robot.TILE_SIZE;
 				Robot.travelTo(linearDistance);
-				Robot.turnTo(90);
+				Robot.turnTo(Math.toRadians(90));
 			}else if(direction==2||direction==4) {
 				isMovingX=true;
 				System.out.println("Moving alone x, vertice:  "+direction);
 				// robot heading alone x
 				double linearDistance=(LocalizationData.getURx()-LocalizationData.getLLx()+1)*Robot.TILE_SIZE;
 				Robot.travelTo(linearDistance);
-				Robot.turnTo(90);
+				Robot.turnTo(Math.toRadians(90));
 			}
 		}
 	}
@@ -70,6 +70,7 @@ public class Search implements UltrasonicController{
 		else validDistance=xQuadrantDistance;
 		
 		if(distance<validDistance) {
+			System.out.println("Block detected");
 			// there is a block 
 			//ToDo: add a method to take a few sample data and confirm distance
 			// ToDo: verify if this block has been searched already
@@ -107,6 +108,7 @@ public class Search implements UltrasonicController{
 				}
 				// turn back and continue with the path
 				Robot.turnTo(Math.toRadians(-90));		
+				
 			}
 		}		
 	}
@@ -119,5 +121,4 @@ public class Search implements UltrasonicController{
 	public boolean isBlockSearched() {
 		return false;
 	}
-
 }

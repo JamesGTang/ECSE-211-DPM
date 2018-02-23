@@ -140,6 +140,7 @@ public class UltrasonicLocalizer implements UltrasonicController{
 	 * This method verifies the falling edge and rising edge is applied correct and check if any mechanical error
 	 */
 	public void verifyCorrection() {
+		Robot.alterSpeed("DRIVE");
 		// turn usMotor 90 degree to face west wall
 		Robot.usMotor.setSpeed(50);
 		Robot.usMotor.rotateTo(90);
@@ -163,10 +164,7 @@ public class UltrasonicLocalizer implements UltrasonicController{
 		}else {
 			//do nothing here
 		}
+		Robot.alterSpeed("COR");
 		
 	}
-	
-
-	
-	
 }

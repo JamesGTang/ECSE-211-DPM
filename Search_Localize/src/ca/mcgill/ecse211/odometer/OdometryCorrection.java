@@ -36,7 +36,7 @@ public class OdometryCorrection implements Runnable {
       correctionStart = System.currentTimeMillis();
       // fetch color from Sample Provider thread
       lightVal=Robot.getFloorColor();
-      System.out.println(lightVal);
+      System.out.println("lightval: "+lightVal);
       // if robot is not on the line light sensor in red mode should output value less than 10
       if(lightVal <=BLACK_THRESHOLD){
     	  	Sound.beep();
