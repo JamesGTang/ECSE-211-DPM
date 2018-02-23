@@ -130,6 +130,4 @@ public class ColorTest extends Thread {
 
 		return ifFound;
 	}
-	
-	
 }

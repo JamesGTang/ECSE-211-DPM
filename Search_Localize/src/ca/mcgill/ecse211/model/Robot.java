@@ -43,6 +43,7 @@ public class Robot {
 	
 	// robot sensor placement data
 	public static double floorSensorOffset=2.0; // distance of light sensor to wheel axis
+	public static double usSensorOffset=2.0;
 	public static final double forwardLightSensorOffset=1.5; // how far the forward facing light sensor is from the ultrasonic sensor
 	public static int usMotorAngle=0;
 	private static double OFF_CONST=1.02;
@@ -105,6 +106,18 @@ public class Robot {
 		rightMotor.setSpeed(FORWARD_SPEED);
 		leftMotor.setAcceleration(ACCELERATION_SPEED);
 		rightMotor.setAcceleration(ACCELERATION_SPEED);
+		leftMotor.forward();
+		rightMotor.forward();
+	}
+	
+	/**
+	 * This method put the robot in an assigned speed drive forward
+	 */
+	public static void driveForwardWithSpeed(int fwd_speed,int acceleration_speed) {
+		leftMotor.setSpeed(fwd_speed);
+		rightMotor.setSpeed(fwd_speed);
+		leftMotor.setAcceleration(acceleration_speed);
+		rightMotor.setAcceleration(acceleration_speed);
 		leftMotor.forward();
 		rightMotor.forward();
 	}
