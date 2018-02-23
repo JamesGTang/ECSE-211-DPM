@@ -391,4 +391,5 @@ public class Robot {
 	public void clearLCD() {
 		lcd.clear();
 	}
+
 }

@@ -90,7 +90,6 @@ public class SearchTargetBlock implements UltrasonicController{
 		if(distance < validDistance) {
 			// there is a block, verify distance
 			System.out.println("Found a block here");
-			Robot.usMotor.rotate(90);
 			Robot.stop();
 				ifDistanceConfirmed = verifyDistance(distance);
 				if (ifDistanceConfirmed) {
@@ -98,13 +97,14 @@ public class SearchTargetBlock implements UltrasonicController{
 					if (!isBlockSearched(distance)) {
 						// if block not searched, stop the wheel
 						Robot.stop();
+						Robot.turnTo(Math.toRadians(90));
+						// rotate us motor 90 degree to face forward
+						Robot.usMotor.rotate(90);
+						
 						// record the path for robot to get back to
 						if (isMovingX) turnPoint = odometer.getY();
 						else turnPoint = odometer.getX();
-						// rotate robot 90 degree
-						Robot.turnTo(Math.toRadians(90));
-						// rotate us motor 90 degree to face forward
-						Robot.usMotor.rotate(-90);
+						
 						// approach the block slowly
 						Robot.alterSpeed("SEARCH");
 						Robot.driveForward();
@@ -113,25 +113,9 @@ public class SearchTargetBlock implements UltrasonicController{
 						}
 						// distance is less than 6, move even slower
 						Robot.alterSpeed("COR");
-						// set the RGB value of the target block
-						if (tb == 1) {
-							targetValue[0] = 22;
-							targetValue[1] = 2;
-							targetValue[2] = 2;
-						} else if (tb == 2) {
-							targetValue[0] = 5;
-							targetValue[1] = 12;
-							targetValue[2] = 17;
-						} else if (tb == 3) {
-							targetValue[0] = 39;
-							targetValue[1] = 28;
-							targetValue[2] = 4;
-						} else if (tb == 4) {
-							targetValue[0] = 45;
-							targetValue[1] = 47;
-							targetValue[2] = 35;
-						}
-
+						// set the block to be searched
+						setTargetBlock(tb);
+						
 						// ToDo: keep moving until a color is detected,
 						while (!ifBlockDetected) {
 							color = Robot.getColor();
@@ -220,7 +204,11 @@ public class SearchTargetBlock implements UltrasonicController{
 	public double readUSDistance() {
 		return this.distance;
 	}
-	
+	/**
+	 * This method verifies the distance detected by polling 5 data and calculate the average
+	 * @param distance
+	 * @return true if the distance detected is a valid detection
+	 */
 	public boolean verifyDistance(double distance) {
 		double totalDistance = 0;
 		boolean ifDistanceConfirmed = false;
@@ -235,7 +223,10 @@ public class SearchTargetBlock implements UltrasonicController{
 		System.out.println("Verify distance: "+ifDistanceConfirmed);
 		return ifDistanceConfirmed;
 	}
-	
+	/**
+	 * This method adds color block to the list that stores all the color block found
+	 * @param int TBColor, the color of the block found
+	 */
 	public boolean addBlockToSearchList(int TBColor) {
 		
 		boolean ifAddedBlock = false;
@@ -265,10 +256,13 @@ public class SearchTargetBlock implements UltrasonicController{
 			ColorBlock aColorBlock = new ColorBlock(blockX, blockY, TBColor);
 			colorBlockList.add(aColorBlock);
 		}
-		
+		System.out.println("Block added to list, total: "+colorBlockList.toString());
 		return ifAddedBlock;
 	}
-	
+	/*
+	 * This method determines if the block just found is already searched
+	 * @param distance, the distance detected by ultrasonic sensor
+	 */
 	public boolean isBlockSearched(double distance) {
 		boolean isBlockSearched = false;
 		
@@ -290,16 +284,39 @@ public class SearchTargetBlock implements UltrasonicController{
 			predictedblockY = sensorY + distance;
 			predictedblockY = sensorX;  //6 should be changed to an offset variable specified in class Robot
 		}
-		
 		Iterator<ColorBlock> cbIterator=colorBlockList.iterator();
 		while (cbIterator.hasNext()) {
 			ColorBlock aBlock=cbIterator.next();
 			if(Math.abs(aBlock.getX()-predictedblockX)<=5&&Math.abs(aBlock.getY()-predictedblockY)<=5) {
-				
+				isBlockSearched=true;
 			}
 		}
 		System.out.println("Block searched: "+isBlockSearched);
 		return isBlockSearched;
+	}
+	/**
+	 * This method sets the target block using color
+	 * @param int tb, the color of the target block
+	 */
+	public static void setTargetBlock(int tb) {
+		// set the RGB value of the target block
+		if (tb == 1) {
+			targetValue[0] = 22;
+			targetValue[1] = 2;
+			targetValue[2] = 2;
+		} else if (tb == 2) {
+			targetValue[0] = 5;
+			targetValue[1] = 12;
+			targetValue[2] = 17;
+		} else if (tb == 3) {
+			targetValue[0] = 39;
+			targetValue[1] = 28;
+			targetValue[2] = 4;
+		} else if (tb == 4) {
+			targetValue[0] = 45;
+			targetValue[1] = 47;
+			targetValue[2] = 35;
+		}
 	}
 
 }
