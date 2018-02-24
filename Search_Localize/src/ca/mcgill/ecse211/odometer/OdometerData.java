@@ -172,7 +172,7 @@ public class OdometerData {
 		       // than simple busy wait.
 		  }
 		  
-		 yCurrrent = x;
+		 yCurrrent = y;
 	  }catch(InterruptedException e) {
 		  e.printStackTrace();
 	  }finally{

@@ -6,7 +6,9 @@ import java.util.Iterator;
 import ca.mcgill.ecse211.data.ColorBlock;
 import ca.mcgill.ecse211.data.LocalizationData;
 import ca.mcgill.ecse211.model.Robot;
-
+import ca.mcgill.ecse211.odometer.Odometer;
+import ca.mcgill.ecse211.odometer.OdometerExceptions;
+import ca.mcgill.ecse211.util.robotUtil;
 import lejos.hardware.Sound;
 
 public class SearchTargetBlock {
@@ -24,14 +26,16 @@ public class SearchTargetBlock {
 	private double yQuadrantDistance;
 	private double validDistance;
 	private boolean ifDistanceConfirmed;
+	private Odometer odometer;
 	// this holds all the color block found
 	ArrayList<ColorBlock> colorBlockList = new ArrayList<ColorBlock>();
 	int counter = 0; // count the number of blocks in the colorBlockList
 
-	public SearchTargetBlock(int tb){
+	public SearchTargetBlock(int tb) throws OdometerExceptions{
 		this.tb = tb;
+		odometer=Odometer.getOdometer();
 		//ToDo: this line must be taken out before demo! this is used during testing
-		Robot.odometer.setXYT(45.72, 45.72, 0);
+		odometer.setXYT(45.72, 45.72, 0);
 		// rotate the ultrasonic sensor so it is facing the side
 		xQuadrantDistance = (LocalizationData.getURx() - LocalizationData.getLLx()) / 2 * Robot.TILE_SIZE;
 		yQuadrantDistance = (LocalizationData.getURy() - LocalizationData.getLLy()) / 2 * Robot.TILE_SIZE;
@@ -43,6 +47,7 @@ public class SearchTargetBlock {
 		//Robot.driveForward();
 		for (int i = 1; i <= 4; i++) {
 			// set the direction at start
+			Robot.alterSpeed("SEARCH");
 			Robot.driveForward();
 			direction = i;
 			if (isMovingX)
@@ -56,11 +61,12 @@ public class SearchTargetBlock {
 				System.out.println("Moving alone y, vertice:  " + direction);
 				double linearOffset = (LocalizationData.getURy() + 0.5) * Robot.TILE_SIZE;
 				// keep driving until the robot's y covers search zone y
-				while (Robot.odometer.getY() <= linearOffset) {
+				while (odometer.getY() <= linearOffset) {
+				   
 					// if a block is detected
 					distance=Robot.getDistance();
 					//System.out.println(distance+"|"+validDistance);
-					if (distance< validDistance) {
+					if (distance< validDistance&&!isBlockSearched(distance)) {
 						Robot.stop();
 						ifDistanceConfirmed = verifyDistance(distance);
 						if (ifDistanceConfirmed) {
@@ -72,39 +78,39 @@ public class SearchTargetBlock {
 						Robot.driveForward();
 					}
 				}
-				Robot.stop();
+
 			} else if (direction == 2) {
 				// robot heading alone x
 				isMovingX = true;
 				System.out.println("Moving alone x, vertice:  " + direction);
 				double linearOffset = (LocalizationData.getURx() + 0.5) * Robot.TILE_SIZE;
 				// keep driving until the robot's y covers search zone y
-				while (Robot.odometer.getX() <= linearOffset) {
+				while (odometer.getX() <= linearOffset) {
 					// if a block is detected
 					distance=Robot.getDistance();
-					if (distance< validDistance) {
+					if (distance< validDistance&&!isBlockSearched(distance)) {
 						Robot.stop();
 						ifDistanceConfirmed = verifyDistance(distance);
 						if (ifDistanceConfirmed) {
 							discoverBlock(Robot.getDistance());
+							Robot.driveForward();
 						} else {
 							// dothing the distance is false postive
 						}
 						Robot.driveForward();
 					}
 				}
-				Robot.stop();
 		}else if (direction == 3) {
 			// robot heading alone y
 			isMovingX = false;
 			System.out.println("Moving alone y, vertice:  " + direction);
-			double linearOffset = (LocalizationData.getURy() + 0.5) * Robot.TILE_SIZE;
+			double linearOffset = (LocalizationData.getLLy() - 0.5) * Robot.TILE_SIZE;
 			// keep driving until the robot's y covers search zone y
-			while (Robot.odometer.getY() >= linearOffset) {
+			while (odometer.getY() >= linearOffset) {
 				// if a block is detected
 				distance=Robot.getDistance();
 				System.out.println(distance);
-				if (distance< validDistance) {
+				if (distance< validDistance&&!isBlockSearched(distance)) {
 					Robot.stop();
 					ifDistanceConfirmed = verifyDistance(distance);
 					if (ifDistanceConfirmed) {
@@ -116,29 +122,30 @@ public class SearchTargetBlock {
 					Robot.driveForward();
 				}
 			}
-			Robot.stop();
+
 		} else if (direction == 4) {
 			// robot heading alone x
 			isMovingX = true;
 			System.out.println("Moving alone x, vertice:  " + direction);
-			double linearOffset = (LocalizationData.getURx() + 0.5) * Robot.TILE_SIZE;
+			double linearOffset = (LocalizationData.getLLx() - 0.5) * Robot.TILE_SIZE;
 			// keep driving until the robot's y covers search zone y
-			while (Robot.odometer.getX() <= linearOffset) {
+			while (odometer.getX() >= linearOffset) {
 				// if a block is detected
 				distance=Robot.getDistance();
-				if (distance< validDistance) {
+				if (distance< validDistance&&!isBlockSearched(distance)) {
 					Robot.stop();
 					ifDistanceConfirmed = verifyDistance(distance);
 					if (ifDistanceConfirmed) {
 						discoverBlock(Robot.getDistance());
+						Robot.driveForward();
 					} else {
 						// dothing the distance is false postive
 					}
 					Robot.driveForward();
 				}
 			}
-			Robot.stop();
 		}
+			Robot.turnTo(Math.toRadians(90));
 			// ToDo: exit loop if found
 		}	
 	}
@@ -164,7 +171,7 @@ public class SearchTargetBlock {
 			// there is a block, verify distance
 			System.out.println("Found a block here");
 			// check if block is searched already
-			if (!isBlockSearched(distance)) {
+			
 				Sound.beepSequenceUp();
 				// if block not searched, stop the wheel
 				Robot.stop();
@@ -177,9 +184,9 @@ public class SearchTargetBlock {
 
 				// record the path for robot to get back to
 				if (isMovingX)
-					turnPoint = Robot.odometer.getY();
+					turnPoint = odometer.getY();
 				else
-					turnPoint = Robot.odometer.getX();
+					turnPoint = odometer.getX();
 
 				// approach the block slowly
 				Robot.alterSpeed("SEARCH");
@@ -251,35 +258,35 @@ public class SearchTargetBlock {
 					Sound.beep();
 					// addBlockToSearchList(TBColor);
 				}
-
+				Robot.alterSpeed("DRIVE");
 				if (direction == 1) {
-					System.out.println("Robot.odometer before adding block: "+Robot.odometer.getX()+"|"+Robot.odometer.getY());
-					double xTB = Robot.odometer.getX() + Robot.forwardLightSensorOffset + Robot.usSensorOffset + 1.5 + 5;
-					colorBlockList.add(new ColorBlock(xTB, Robot.odometer.getY(), TBColor));
-					Robot.travelTo(turnPoint - Robot.odometer.getX());
+					System.out.println("odometer before adding block: "+odometer.getX()+"|"+odometer.getY());
+					double xTB = odometer.getX() + Robot.forwardLightSensorOffset + Robot.usSensorOffset + 1.5 + 5;
+					colorBlockList.add(new ColorBlock(xTB, odometer.getY(), TBColor));
+					Robot.travelTo(turnPoint - odometer.getX());
 				} else if (direction == 3) {
-					double xTB = Robot.odometer.getX() - Robot.forwardLightSensorOffset - Robot.usSensorOffset - 1.5 - 5;
-					colorBlockList.add(new ColorBlock(xTB, Robot.odometer.getY(), TBColor));
-					Robot.travelTo(turnPoint - Robot.odometer.getX());
+					double xTB = odometer.getX() - Robot.forwardLightSensorOffset - Robot.usSensorOffset - 1.5 - 5;
+					colorBlockList.add(new ColorBlock(xTB, odometer.getY(), TBColor));
+					Robot.travelTo(turnPoint - odometer.getX());
 				} else if (direction == 2) {
-					double yTB = Robot.odometer.getY() - Robot.forwardLightSensorOffset - Robot.usSensorOffset - 1.5 - 5;
-					colorBlockList.add(new ColorBlock(Robot.odometer.getX(), yTB, TBColor));
-					Robot.travelTo(turnPoint - Robot.odometer.getY());
+					double yTB = odometer.getY() - Robot.forwardLightSensorOffset - Robot.usSensorOffset - 1.5 - 5;
+					colorBlockList.add(new ColorBlock(odometer.getX(), yTB, TBColor));
+					Robot.travelTo(turnPoint - odometer.getY());
 				} else if (direction == 4) {
-					double yTB = Robot.odometer.getY() + Robot.forwardLightSensorOffset + Robot.usSensorOffset + 1.5 + 5;
-					colorBlockList.add(new ColorBlock(Robot.odometer.getX(), yTB, TBColor));
-					Robot.travelTo(turnPoint - Robot.odometer.getY());
+					double yTB = odometer.getY() + Robot.forwardLightSensorOffset + Robot.usSensorOffset + 1.5 + 5;
+					colorBlockList.add(new ColorBlock(odometer.getX(), yTB, TBColor));
+					Robot.travelTo(turnPoint - odometer.getY());
 				}
 				System.out.println("Blocked added: "+colorBlockList.toString());
 				// turn back and continue with the path
 				System.out.println("Turn back to search path");
+				Robot.usMotor.rotate(-90);
 				Robot.turnTo(Math.toRadians(-90));
-				Robot.travelTo(-8);
-				
-			}
-			Robot.usMotor.rotate(-90);
-		}
+				Robot.travelTo(17);
+				Robot.alterSpeed("SEARCH");
+			}			
 	}
+	
 
 	/**
 	 * This method verifies the distance detected by polling 5 data and calculate
@@ -313,8 +320,8 @@ public class SearchTargetBlock {
 	public boolean addBlockToSearchList(int TBColor) {
 
 		boolean ifAddedBlock = false;
-		double sensorX = Robot.odometer.getX();
-		double sensorY = Robot.odometer.getY();
+		double sensorX = odometer.getX();
+		double sensorY = odometer.getY();
 		double blockX;
 		double blockY;
 
@@ -351,34 +358,34 @@ public class SearchTargetBlock {
 	public boolean isBlockSearched(double distance) {
 		boolean isBlockSearched = false;
 
-		double sensorX = Robot.odometer.getX();
-		double sensorY = Robot.odometer.getY();
-		System.out.println("in IsBlocke, x/y"+sensorX+" "+sensorY);
+		double sensorX = odometer.getX();
+		double sensorY = odometer.getY();
+		//System.out.println("in IsBlocke, x/y"+sensorX+" "+sensorY);
 		double predictedblockX = -99;
 		double predictedblockY = -99;
 
 		if (direction == 1) { // same y sensor has smaller x
-			predictedblockY = sensorY;
+			predictedblockY = sensorY+8;
 			predictedblockX = sensorX + distance+5; // 6 should be changed to an offset variable specified in class Robot
 		} else if (direction == 2) { // same x sensor has larger y
 			predictedblockY = sensorY - distance-5;
-			predictedblockY = sensorX; // 6 should be changed to an offset variable specified in class Robot
+			predictedblockY = sensorX+8; // 6 should be changed to an offset variable specified in class Robot
 		} else if (direction == 3) { // same y sensor has larger x
-			predictedblockY = sensorY;
+			predictedblockY = sensorY-8;
 			predictedblockY = sensorX - distance-5; // 6 should be changed to an offset variable specified in class Robot
 		} else if (direction == 4) { // same x sensor has smaller y
 			predictedblockY = sensorY + distance+5;
-			predictedblockY = sensorX; // 6 should be changed to an offset variable specified in class Robot
+			predictedblockY = sensorX-8; // 6 should be changed to an offset variable specified in class Robot
 		}
 		Iterator<ColorBlock> cbIterator = colorBlockList.iterator();
 		while (cbIterator.hasNext()) {
 			ColorBlock aBlock = cbIterator.next();
 			System.out.println("block iterator x, y, blockx,blocky,predx,predy"+sensorX+"|"+sensorY+"|"+aBlock.getX()+"|"+aBlock.getY()+"|"+predictedblockX+"|"+predictedblockY);
-			if (Math.abs(aBlock.getX() - predictedblockX) <= 5 && Math.abs(aBlock.getY() - predictedblockY) <= 5) {
+			if (Math.abs(aBlock.getX() - predictedblockX) <= 15 && Math.abs(aBlock.getY() - predictedblockY) <= 15 ) {
 				isBlockSearched = true;
 			}
 		}
-		System.out.println("Block searched: " + isBlockSearched);
+		//System.out.println("Block searched: " + isBlockSearched);
 		return isBlockSearched;
 	}
 

@@ -113,7 +113,7 @@ public class Odometer extends OdometerData implements Runnable {
   // run method (required for Thread)
   public void run() {
     long updateStart, updateEnd;
-
+    
     while (true) {
       updateStart = System.currentTimeMillis();
       double deltaTheta;
@@ -140,7 +140,6 @@ public class Odometer extends OdometerData implements Runnable {
       dLeft=0;
       dRight=0;
       
-
       // this ensures that the odometer only runs once every period
       updateEnd = System.currentTimeMillis();
       if (updateEnd - updateStart < ODOMETER_PERIOD) {
