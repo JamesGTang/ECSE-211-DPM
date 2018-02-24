@@ -105,7 +105,9 @@ public class Lab5 {
 			 */
 			// we start the odometer correction thread first
 			// change the speed back for small turn
-			Robot.alterSpeed("SEARCH");
+			
+			//below if for 
+			/*Robot.alterSpeed("SEARCH");
 			System.out.println("Travel to center of tile for start");
 			Robot.turnTo(Math.toRadians(-45));
 			Robot.travelTo(21.55);
@@ -121,12 +123,13 @@ public class Lab5 {
 			// ToDo: use in thread stop machanism to stop the thread
 			// turn the sensor in right direction
 			Robot.usMotor.rotate(-180);
-			odocorrectionThread.stop();
+			odocorrectionThread.stop();*/
 			// now start search
+			Robot.alterSpeed("SEARCH");
 			SearchTargetBlock newSearch=new SearchTargetBlock(coordinates[4]);
-			UltrasonicPoller usSearchPoller = new UltrasonicPoller(Robot.usDistance, Robot.usData,newSearch);	
+			// UltrasonicPoller usSearchPoller = new UltrasonicPoller(Robot.usDistance, Robot.usData,newSearch);	
 			// run ultrasonic thread last to save resources
-			usSearchPoller.start();
+			// usSearchPoller.start();
 			newSearch.SearchTarget();
 			System.out.println("Search finished");	
 			Robot.lcd.drawString("Finished", 0, 1);

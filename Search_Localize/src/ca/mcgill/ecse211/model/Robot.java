@@ -42,7 +42,7 @@ public class Robot {
 	
 	// robot sensor placement data
 	public static double floorSensorOffset=2.0; // distance of light sensor to wheel axis
-	public static double usSensorOffset=7.0;
+	public static double usSensorOffset=7;
 	public static final double forwardLightSensorOffset=1.5; // how far the forward facing light sensor is from the ultrasonic sensor
 	public static int usMotorAngle=0;
 	private static double OFF_CONST=1.02;
@@ -274,7 +274,7 @@ public class Robot {
 	 */
 	public static double getDistance() {
 		Robot.usDistance.fetchSample(usData, 0);
-		float distance=usData[0]*100;
+		double distance=usData[0]*100;
 		return distance;
 	}
 	
