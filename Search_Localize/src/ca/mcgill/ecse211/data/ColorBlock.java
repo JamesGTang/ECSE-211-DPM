@@ -1,8 +1,8 @@
 package ca.mcgill.ecse211.data;
 
 public class ColorBlock {
-	final int width = 10;
-	final int length = 10;
+	static final int width = 10;
+	static final int length = 10;
 	final int height = 10;
 	// ColorBlock Attributes
 	private double x;

@@ -43,6 +43,7 @@ public class Robot {
 	// robot sensor placement data
 	public static double floorSensorOffset=2.0; // distance of light sensor to wheel axis
 	public static double usSensorOffset=7;
+	public static double usSensorAngle=4;  // angle for ultrasonic sensor detection, which correlates to distance
 	public static final double forwardLightSensorOffset=1.5; // how far the forward facing light sensor is from the ultrasonic sensor
 	public static int usMotorAngle=0;
 	private static double OFF_CONST=1.02;
@@ -55,7 +56,8 @@ public class Robot {
 	// odometry related object
 	public static Odometer odometer;
 	public static Display odometryDisplay;
-	
+	public static int xStartingOffset=1; //this is starting offset for odometer corrrection depends on SC, number of tiles already passed when robot arrives at starting postion
+	public static int yStartingOffset=1;
 	/**
 	 * This method initialize the robot into original state
 	 * @throws OdometerExceptions 
@@ -386,6 +388,9 @@ public class Robot {
 		}else if(type=="COR") {
 			FORWARD_SPEED = 50;
 			ACCELERATION_SPEED=50;
+		}else if(type=="FASE") {
+			FORWARD_SPEED = 200;
+			ACCELERATION_SPEED=150;
 		}
 	}
 	public void clearLCD() {
