@@ -6,7 +6,6 @@ import lejos.hardware.Sound;
 public class OdometryCorrection implements Runnable {
 	private static final long CORRECTION_PERIOD = 10;
 	private static final int BLACK_THRESHOLD = 300;
-	private static double offsetOrigin; // this is how far the robot is from the (0,0) in y
 	private double offset = 0;
 	public static boolean isRunnable = true;
 	private Odometer odometer; // Odometer object

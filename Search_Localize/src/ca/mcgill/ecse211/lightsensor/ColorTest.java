@@ -6,26 +6,17 @@ import ca.mcgill.ecse211.model.Robot;
 import lejos.hardware.Sound;
 
 public class ColorTest extends Thread {
-	// modify this to match the color of the block
-	//public final String EXPECTED_COLOR="EMPTY";
-	//public final double DISTANCE=0;
 	private LightSensorController cont;
-	private static float[] color=new float[Robot.colorProvider.sampleSize()];
 	private static float[] usData = new float[Robot.usSensor.sampleSize()];
-	private static int targetColor;
-	private static double[] targetValue = new double [Robot.colorProvider.sampleSize()]; 
-	private static String colorName = "EMPTY";
 	public static Display colorDisplay;
 
 	
 	// constructor here
 	public ColorTest() {
-		this.cont=cont;
 	}
 	
 	public void run() {
 		Robot.lcd.clear();
-		int counter=0;  //counter?
 		while (true) {
 			//Robot.colorProvider.fetchSample(color, 0); // acquire data
 			//Robot.usSensor.fetchSample(usData, 0);
@@ -56,8 +47,6 @@ public class ColorTest extends Thread {
 				Robot.lcd.drawInt((int)usData[0],0,2);
 			}
 			// return value only when a color block is detected
-			//cont.processLightData(tb);
-			counter++;
 			
 			try {
 				// 10hz refresh rate

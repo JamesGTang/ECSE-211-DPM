@@ -3,8 +3,6 @@ package ca.mcgill.ecse211.controller;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.freedesktop.DBus.Local;
-
 import ca.mcgill.ecse211.data.ColorBlock;
 import ca.mcgill.ecse211.data.LocalizationData;
 import ca.mcgill.ecse211.model.Robot;
