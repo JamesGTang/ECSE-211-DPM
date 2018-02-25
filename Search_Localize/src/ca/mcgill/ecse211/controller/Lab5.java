@@ -17,7 +17,7 @@ public class Lab5 {
 	public static int coordinates[]= {2,2,6,6,1,0};
 	
 	@SuppressWarnings("deprecation")
-	public static void main(String[] args) throws OdometerExceptions {
+	public static void main(String[] args) throws OdometerExceptions, InterruptedException {
 
 		int buttonChoice;
 		// start all threads and all robot in-class services

@@ -43,7 +43,7 @@ public class Robot {
 	// robot sensor placement data
 	public static double floorSensorOffset=2.0; // distance of light sensor to wheel axis
 	public static double usSensorOffset=7;
-	public static double usSensorAngle=4;  // angle for ultrasonic sensor detection, which correlates to distance
+	public static double usSensorAngle=10;  // angle for ultrasonic sensor detection, which correlates to distance
 	public static final double forwardLightSensorOffset=1.5; // how far the forward facing light sensor is from the ultrasonic sensor
 	public static int usMotorAngle=0;
 	private static double OFF_CONST=1.02;
@@ -63,6 +63,8 @@ public class Robot {
 	 * @throws OdometerExceptions 
 	 */
 	public static int init(int startingPoint) throws OdometerExceptions {
+		usMotor.setSpeed(100);
+		usMotor.setAcceleration(50);
 		System.out.println("Robot initialized with odometer, odometer display");
 		driveState=DriveState.STOP;
 		loc=LocalizationCategory.NONE;
@@ -384,11 +386,11 @@ public class Robot {
 			ACCELERATION_SPEED=100;
 		}else if(type=="SEARCH") {
 			FORWARD_SPEED = 100;
-			ACCELERATION_SPEED=75;
+			ACCELERATION_SPEED=50;
 		}else if(type=="COR") {
 			FORWARD_SPEED = 50;
 			ACCELERATION_SPEED=50;
-		}else if(type=="FASE") {
+		}else if(type=="FAST") {
 			FORWARD_SPEED = 200;
 			ACCELERATION_SPEED=150;
 		}
