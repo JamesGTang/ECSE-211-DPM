@@ -3,6 +3,8 @@ package ca.mcgill.ecse211.controller;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import javax.xml.xpath.XPath;
+
 import ca.mcgill.ecse211.data.ColorBlock;
 import ca.mcgill.ecse211.data.LocalizationData;
 import ca.mcgill.ecse211.model.Robot;
@@ -16,7 +18,9 @@ public class SearchTargetBlock {
 	// records which side of the search zone the robot is heading now
 	// 1: west 2: north 3: east 4:south -1: invalid
 	private int direction = -1;
-	private double turnPoint = 0; // the x or y value at the point where the robot turned
+	private double xBefore = 0; // the x or y value at the point where the robot turned
+	private double yBefore=0;
+	
 	private boolean isMovingX; // records which direction robot is moving at the moment
 	private int tb; // color of the target block
 	private static double[] targetValue = new double[Robot.colorProvider.sampleSize()];
@@ -166,12 +170,13 @@ public class SearchTargetBlock {
 		// the array of light value which increase the RGB value by 10^3 for calculation  purpose
 		double lightVal[] = new double[3];
 		// since us sensor has an angle of detection, we will need to use distance to find out where exactly is the block
-		trueOffset=Math.tan(Math.toRadians(Robot.usSensorAngle))*distance+5+5;
+		trueOffset=Math.tan(Math.toRadians(Robot.usSensorAngle))*distance+5;
 		boolean isOverDrove=false;
 		double xPrev,yPrev;
 		//System.out.println("Distance: "+distance);
 		//System.out.println("Odometer here: "+odometer.getX()+" "+odometer.getY());
 		//System.out.println("True offset according to angle is: "+trueOffset);
+		int angleToPerf=0;
 		
 		if (!ifFound) {
 			Robot.stop();
@@ -187,16 +192,49 @@ public class SearchTargetBlock {
 			Robot.turnTo(Math.toRadians(90));
 			// rotate us motor 90 degree to face forward
 			Robot.usMotor.rotate(90);
+			// verify the which kind of block position it is: special scenario, block is faced 45 degree to the x axis
+			int i=0;
+			int lEdge=0;
+			int rEdge=0;
+			
+			double radar[]=new double[18];
+			// radar the distance of 50 degree
+			
+			while(i<=10) {
+				// rotate 5 degree at a time to the right
+				Robot.usMotor.rotate(-(i+1)*5);
+				radar[i]=Robot.getDistance();
+				i=i+1;
+				System.out.println("radar: "+radar[i]);
+			}
+			
+			for(int k=0;k<=10;k++) {
+				System.out.println("Find left edge");
+				if(Math.abs(radar[k]-distance)<=10) {
+					lEdge=k*5;
+					System.out.println("ledge: "+lEdge);
+					break;
+				}
+			}
+			
+			for(int k=0;k<=10;k++) {
+				System.out.println("Find left edge");
+				if(Math.abs(radar[9-k]-distance)<=10) {
+					rEdge=k*5;
+					System.out.println("redge: "+rEdge);
+					break;
+				}
+			}
+			*/
 			// record the x and y value now
 			xPrev=odometer.getX();
 			yPrev=odometer.getY();
 			
-			// record the path for robot to get back to
-			if (isMovingX)
-				turnPoint = odometer.getY();
-			else
-				turnPoint = odometer.getX();
-
+			//Robot.usMotor.rotate(25);
+			angleToPerf=Math.abs(rEdge-lEdge);
+			System.out.println("Turn: "+(rEdge-lEdge));
+			Robot.turnTo(Math.toRadians(angleToPerf));
+			
 			// approach the block slowly
 			Robot.alterSpeed("SEARCH");
 			System.out.println("Discovering the block by driving toward");
@@ -296,11 +334,12 @@ public class SearchTargetBlock {
 			}
 			System.out.println("Blocked added: " + colorBlockList.toString());
 			// turn back and continue with the path
-			returnToPath();
+			returnToPath(xPrev,yPrev,angleToPerf);
 		}
 	}
 	
-	public void returnToPath() {
+	public void returnToPath(double xPrev,double yPrev,int angleToPerf) {
+		/*
 		if (direction == 1) {
 			Robot.travelTo(turnPoint - odometer.getX());
 		} else if (direction == 3) {
@@ -311,10 +350,12 @@ public class SearchTargetBlock {
 		} else if (direction == 4) {
 			Robot.travelTo(odometer.getY()-turnPoint);
 		}
+		*/
 		// turn back and continue with the path
 		System.out.println("Turn back to search path");
+		Robot.travelTo(xPrev, yPrev);
 		Robot.usMotor.rotate(-90);
-		Robot.turnTo(Math.toRadians(-90));
+		Robot.turnTo(Math.toRadians(-90-angleToPerf));
 		Robot.travelTo(trueOffset*2); // get out of us sensor's range to avoid detecting the same block again
 		Robot.alterSpeed("SEARCH");
 	}
@@ -396,7 +437,7 @@ public class SearchTargetBlock {
 		double predictedblockX = -99;
 		double predictedblockY = -99;
 		System.out.println("Direction when searching for blocklist: "+direction+" "+sensorX+" "+sensorY);
-		trueOffset=Math.tan(Math.toRadians(Robot.usSensorAngle))*distance+2.5+5;
+		trueOffset=Math.tan(Math.toRadians(Robot.usSensorAngle))*distance+6;
 		
 		if (direction == 1) { // same y sensor has smaller x
 			predictedblockY = sensorY + 8;

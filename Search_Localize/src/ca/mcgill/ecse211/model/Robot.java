@@ -43,7 +43,7 @@ public class Robot {
 	// robot sensor placement data
 	public static double floorSensorOffset=2.0; // distance of light sensor to wheel axis
 	public static double usSensorOffset=7;
-	public static double usSensorAngle=10;  // angle for ultrasonic sensor detection, which correlates to distance
+	public static double usSensorAngle=15;  // angle for ultrasonic sensor detection, which correlates to distance
 	public static final double forwardLightSensorOffset=1.5; // how far the forward facing light sensor is from the ultrasonic sensor
 	public static int usMotorAngle=0;
 	private static double OFF_CONST=1.02;
