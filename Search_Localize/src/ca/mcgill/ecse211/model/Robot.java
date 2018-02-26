@@ -65,7 +65,7 @@ public class Robot {
 	public static int init(int startingPoint) throws OdometerExceptions {
 		usMotor.setSpeed(100);
 		usMotor.setAcceleration(50);
-		System.out.println("Robot initialized with odometer, odometer display");
+		//System.out.println("Robot initialized with odometer, odometer display");
 		driveState=DriveState.STOP;
 		loc=LocalizationCategory.NONE;
 		Starting_Corner=startingPoint;
@@ -385,8 +385,8 @@ public class Robot {
 			FORWARD_SPEED = 150;
 			ACCELERATION_SPEED=100;
 		}else if(type=="SEARCH") {
-			FORWARD_SPEED = 100;
-			ACCELERATION_SPEED=50;
+			FORWARD_SPEED = 150;
+			ACCELERATION_SPEED=75;
 		}else if(type=="COR") {
 			FORWARD_SPEED = 50;
 			ACCELERATION_SPEED=50;

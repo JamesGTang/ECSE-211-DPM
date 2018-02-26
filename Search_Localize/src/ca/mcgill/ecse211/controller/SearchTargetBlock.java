@@ -3,10 +3,10 @@ package ca.mcgill.ecse211.controller;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import javax.xml.xpath.XPath;
 
 import ca.mcgill.ecse211.data.ColorBlock;
 import ca.mcgill.ecse211.data.LocalizationData;
+import ca.mcgill.ecse211.data.RGB;
 import ca.mcgill.ecse211.model.Robot;
 import ca.mcgill.ecse211.odometer.Odometer;
 import ca.mcgill.ecse211.odometer.OdometerExceptions;
@@ -18,12 +18,10 @@ public class SearchTargetBlock {
 	// records which side of the search zone the robot is heading now
 	// 1: west 2: north 3: east 4:south -1: invalid
 	private int direction = -1;
-	private double xBefore = 0; // the x or y value at the point where the robot turned
-	private double yBefore=0;
-	
+
 	private boolean isMovingX; // records which direction robot is moving at the moment
-	private int tb; // color of the target block
-	private static double[] targetValue = new double[Robot.colorProvider.sampleSize()];
+
+	int colorTable[][];
 	private static float[] color = new float[Robot.colorProvider.sampleSize()];
 	// maximun allowed distance for block discovery in that quadrant
 	private double xRange;
@@ -35,19 +33,29 @@ public class SearchTargetBlock {
 	int counter = 0; // count the number of blocks in the colorBlockList
 	private boolean isTargetBlockFound = false; // this tracks if TB is found
 	double trueOffset;
-	
+	int tb;
+	public double redBlockMean[] = new double[] { 91, 11, 0 };
+	public double blueBlockMean[] = new double[] { 9.74, 20.35, 23.38 };
+	public double yellowBlockMean[] = new double[] { 149.89, 98.01, 8.705 };
+	public double whiteBlockMean[] = new double[] { 109.49, 132.15, 65.35 };
+
+	public double redBlockDev[] = new double[] { 21.16945, 3.307641, 3 };
+	public double blueBlockDev[] = new double[] { 3.272273, 10.27079, 4.102944 };
+	public double yellowBlockDev[] = new double[] { 58.75809, 32.7203, 3.307891 };
+	public double whiteBlockDev[] = new double[] { 71.93577, 52.65776, 22.49775 };
+
 	public SearchTargetBlock(int tb) throws OdometerExceptions {
-		this.tb = tb;
 		odometer = Odometer.getOdometer();
 		// ToDo: this line must be taken out before demo! this is used during testing to
 		// substitute for falling edge correction
-		odometer.setXYT(45.72, 45.72, 0);
-		xRange = (LocalizationData.getURx() - LocalizationData.getLLx()) / 2 * Robot.TILE_SIZE;
-		yRange = (LocalizationData.getURy() - LocalizationData.getLLy()) / 2 * Robot.TILE_SIZE;
-		//System.out.println("Valid x/y: " + xRange + " " + yRange);
+		//odometer.setXYT(45.72, 45.72, 0);
+		xRange = (LocalizationData.getURx() - LocalizationData.getLLx()) / 2 * Robot.TILE_SIZE+10;
+		yRange = (LocalizationData.getURy() - LocalizationData.getLLy()) / 2 * Robot.TILE_SIZE+10;
+		// System.out.println("Valid x/y: " + xRange + " " + yRange);
 		System.out.println("Setting target block");
-		setTargetBlock(tb);
-
+		this.tb = tb;
+		colorTable = setTargetBlock();
+		//System.out.println(colorTable.toString());
 	}
 
 	public void SearchTarget() throws InterruptedException {
@@ -71,14 +79,13 @@ public class SearchTargetBlock {
 				while (odometer.getY() <= linearOffset) {
 					// if a block is detected
 					distance = Robot.getDistance();
-					System.out.println("Distance: "+distance);
+					System.out.println("Distance: " + distance);
 					// System.out.println(distance+"|"+searchRange);
 					if (distance < searchRange && !isBlockSearched(distance)) {
 						/*
-						if(isBlockSearched(distance)) {
-							// if block is searched, move forward
-							Robot.travelTo(15); 
-						}*/
+						 * if(isBlockSearched(distance)) { // if block is searched, move forward
+						 * Robot.travelTo(15); }
+						 */
 						Robot.stop();
 						if (verifyDistance(distance)) {
 							discoverBlock(Robot.getDistance());
@@ -100,9 +107,9 @@ public class SearchTargetBlock {
 				while (odometer.getX() <= linearOffset) {
 					// if a block is detected
 					distance = Robot.getDistance();
-					if( distance < searchRange && !isBlockSearched(distance)) {
+					if (distance < searchRange && !isBlockSearched(distance)) {
 						Robot.stop();
-						
+
 						if (verifyDistance(distance)) {
 							discoverBlock(Robot.getDistance());
 							Robot.driveForward();
@@ -111,6 +118,7 @@ public class SearchTargetBlock {
 						}
 						Robot.driveForward();
 					}
+					Thread.sleep(200);
 				}
 			} else if (direction == 3 && !isTargetBlockFound) {
 				// robot heading alone y
@@ -131,6 +139,7 @@ public class SearchTargetBlock {
 						}
 						Robot.driveForward();
 					}
+					Thread.sleep(200);
 				}
 
 			} else if (direction == 4 && !isTargetBlockFound) {
@@ -152,6 +161,7 @@ public class SearchTargetBlock {
 						}
 						Robot.driveForward();
 					}
+					Thread.sleep(200);
 				}
 			}
 			Robot.stop();
@@ -167,17 +177,19 @@ public class SearchTargetBlock {
 		int BlockColor = 0; // 1: Red, 2: Blue, 3: Yellow, 4: White -99: noise
 		// indicates whether a block is in front or not
 		boolean ifBlockDetected = false;
-		// the array of light value which increase the RGB value by 10^3 for calculation  purpose
+		// the array of light value which increase the RGB value by 10^3 for calculation
+		// purpose
 		double lightVal[] = new double[3];
-		// since us sensor has an angle of detection, we will need to use distance to find out where exactly is the block
-		trueOffset=Math.tan(Math.toRadians(Robot.usSensorAngle))*distance+5;
-		boolean isOverDrove=false;
-		double xPrev,yPrev;
-		//System.out.println("Distance: "+distance);
-		//System.out.println("Odometer here: "+odometer.getX()+" "+odometer.getY());
-		//System.out.println("True offset according to angle is: "+trueOffset);
-		int angleToPerf=0;
-		
+		// since us sensor has an angle of detection, we will need to use distance to
+		// find out where exactly is the block
+		trueOffset = Math.tan(Math.toRadians(Robot.usSensorAngle)) * distance + 5;
+		boolean isOverDrove = false;
+		double xPrev, yPrev;
+		// System.out.println("Distance: "+distance);
+		// System.out.println("Odometer here: "+odometer.getX()+" "+odometer.getY());
+		// System.out.println("True offset according to angle is: "+trueOffset);
+		int angleToPerf = 0;
+
 		if (!ifFound) {
 			Robot.stop();
 			// there is a block, verify distance
@@ -188,138 +200,148 @@ public class SearchTargetBlock {
 			Robot.stop();
 			// align axis with the block
 			Robot.travelTo(trueOffset);
-			//System.out.println("Turn to face the block");
+			// System.out.println("Turn to face the block");
 			Robot.turnTo(Math.toRadians(90));
 			// rotate us motor 90 degree to face forward
-			Robot.usMotor.rotate(90);
-			// verify the which kind of block position it is: special scenario, block is faced 45 degree to the x axis
-			int i=0;
-			int lEdge=0;
-			int rEdge=0;
-			
-			double radar[]=new double[18];
+			Robot.usMotor.rotate(120);
+			// verify the which kind of block position it is: special scenario, block is
+			// faced 45 degree to the x axis
+			int i = 0;
+			int lEdge = 0;
+			int rEdge = 0;
+
+			double radar[] = new double[18];
 			// radar the distance of 50 degree
-			
-			while(i<=10) {
+
+			while (i < 12) {
 				// rotate 5 degree at a time to the right
-				Robot.usMotor.rotate(-(i+1)*5);
-				radar[i]=Robot.getDistance();
-				i=i+1;
-				System.out.println("radar: "+radar[i]);
+				Robot.usMotor.rotate(-5);
+				radar[i] = Robot.getDistance();
+				System.out.println("radar: " + radar[i]);
+				i = i + 1;
 			}
-			
-			for(int k=0;k<=10;k++) {
+
+			for (int k = 0; k <= 12; k++) {
 				System.out.println("Find left edge");
-				if(Math.abs(radar[k]-distance)<=10) {
-					lEdge=k*5;
-					System.out.println("ledge: "+lEdge);
+				if (Math.abs(radar[k] - distance) <= 10) {
+					lEdge = k * 5 + 60;
+					System.out.println("ledge: " + lEdge);
 					break;
 				}
 			}
-			
-			for(int k=0;k<=10;k++) {
-				System.out.println("Find left edge");
-				if(Math.abs(radar[9-k]-distance)<=10) {
-					rEdge=k*5;
-					System.out.println("redge: "+rEdge);
+
+			for (int k = 0; k <= 12; k++) {
+				System.out.println("Find right edge");
+				if (Math.abs(radar[12 - k] - distance) <= 10) {
+					rEdge = 120 - k * 5;
+					System.out.println("redge: " + rEdge);
 					break;
 				}
 			}
-			*/
+
+			Robot.usMotor.rotate(+30);
+
 			// record the x and y value now
-			xPrev=odometer.getX();
-			yPrev=odometer.getY();
-			
-			//Robot.usMotor.rotate(25);
-			angleToPerf=Math.abs(rEdge-lEdge);
-			System.out.println("Turn: "+(rEdge-lEdge));
+			xPrev = odometer.getX();
+			yPrev = odometer.getY();
+
+			if ((rEdge - lEdge) / 2 + lEdge >= 90) {
+				// needs to turn right slightly
+				angleToPerf = (rEdge - lEdge) / 2 + lEdge - 90;
+			} else if ((rEdge - lEdge) / 2 + lEdge < 90) {
+				angleToPerf = (rEdge - lEdge) / 2 + lEdge - 90;
+			} else {
+				angleToPerf = 0;
+			}
+			System.out.println("Turn: " + angleToPerf);
 			Robot.turnTo(Math.toRadians(angleToPerf));
-			
+
 			// approach the block slowly
 			Robot.alterSpeed("SEARCH");
 			System.out.println("Discovering the block by driving toward");
+
 			Robot.driveForward();
-			while (Robot.getDistance() > 6&&!isOverDrove) {
+			while (Robot.getDistance() > 6 && !isOverDrove) {
 				// keep driving until the robot is 6 cm away, and the light sensor is 4.5cm away
-				if(robotUtil.getLinearDistance(odometer.getX()-xPrev, odometer.getY()-yPrev)>=distance) {
-					isOverDrove=true;
+				if (robotUtil.getLinearDistance(odometer.getX() - xPrev, odometer.getY() - yPrev) >= distance) {
+					isOverDrove = true;
 					System.out.println("Distance overdrove");
+					returnToPath(xPrev, yPrev, angleToPerf);
+					return;
 				}
 			}
 			// distance is less than 6, move even slower
 			Robot.alterSpeed("COR");
-			// set the block to be searched
-			// ToDo: keep moving until a color is detected,
-			while (!ifBlockDetected&&!isOverDrove) {
-				if(robotUtil.getLinearDistance(odometer.getX()-xPrev, odometer.getY()-yPrev)>=distance) {
-					isOverDrove=true;
-					System.out.println("Color sensor overdrove");
-				}
-				System.out.println("This block is detected");
+
+			/*
+			 * if (robotUtil.getLinearDistance(odometer.getX() - xPrev, odometer.getY() -
+			 * yPrev) >= distance) { isOverDrove = true;
+			 * System.out.println("Color sensor overdrove"); returnToPath(xPrev, yPrev,
+			 * angleToPerf); return; }
+			 */
+			Robot.travelTo(8);
+			System.out.println("Touching block and Calculate color");
+			color = Robot.getColor();
+			lightVal[0] = color[0] * 1000.0; // R value
+			lightVal[1] = color[1] * 1000.0; // G value
+			lightVal[2] = color[2] * 1000.0; // B value
+			/*
+			// determine the block if not target block
+			double differencewithRed, differencewithYellow, differencewithBlue, differencewithWhite = 0;
+
+			differencewithRed = Math.sqrt(Math.pow((lightVal[0] - colorTable[1][0]), 2)
+					+ Math.pow((lightVal[1] - colorTable[1][1]), 2) + Math.pow((lightVal[2] - colorTable[1][2]), 2));
+			differencewithYellow = Math.sqrt(Math.pow((lightVal[0] - colorTable[2][0]), 2)
+					+ Math.pow((lightVal[1] - colorTable[2][1]), 2) + Math.pow((lightVal[2] - colorTable[2][2]), 2));
+			differencewithBlue = Math.sqrt(Math.pow((lightVal[0] - colorTable[3][0]), 2)
+					+ Math.pow((lightVal[1] - colorTable[3][1]), 2) + Math.pow((lightVal[2] - colorTable[3][2]), 2));
+			differencewithWhite = Math.sqrt(Math.pow((lightVal[0] - colorTable[4][0]), 2)
+					+ Math.pow((lightVal[1] - colorTable[4][1]), 2) + Math.pow((lightVal[2] - colorTable[4][2]), 2));
+			*/
+			System.out.println("Light val: " + lightVal[0] + "|" + lightVal[1] + "|" + lightVal[2]);
+			// 1: Red, 2: Blue, 3: Yellow, 4: White -99: noise
+			if (isRed(lightVal)) {
+				BlockColor = 1;
+			} else if (isYellow(lightVal)) {
+				BlockColor = 3;
+			} else if (isWhite(lightVal)) {
+				BlockColor = 4;
+			} else if (isBlue(lightVal)) {
+				BlockColor = 2;
+			} else {
+				BlockColor = 0;
+				//ToDO: If not found, repeat the loop again
+			}
+			
+			// if block is still 0, there is no color detected
+			if (BlockColor == 0) {
+				ifBlockDetected = false;
+			} else {
+				ifBlockDetected = true;
 				Robot.stop();
-				color = Robot.getColor();
-				lightVal[0] = color[0] * 1000.0; // R value
-				lightVal[1] = color[1] * 1000.0; // G value
-				lightVal[2] = color[2] * 1000.0; // B value
 
-				double differencewithTarget = 100;
-
-				if ((lightVal[0] + lightVal[1] + lightVal[2]) / 3 < 5) {
-					ifBlockDetected = false;
+				if (BlockColor == tb) {
+					ifFound = true;
+					isTargetBlockFound = true;
+					System.out.println("Light val: " + lightVal.toString());
+					System.out.println("Target found: " + BlockColor);
+					Sound.twoBeeps();
+					moveToFinalLocation();
+					// ToDo: better handling of exit
+					System.exit(0);
 				} else {
-					ifBlockDetected = true;
-					Robot.stop();
-					differencewithTarget = Math.sqrt(
-							Math.pow((lightVal[0] - targetValue[0]), 2) + Math.pow((lightVal[1] - targetValue[1]), 2)
-									+ Math.pow((lightVal[2] - targetValue[2]), 2));
-
-					if (differencewithTarget < 12) {
-						ifFound = true;
-					} else {
-						ifFound = false;
-
-						// determine the block if not target block
-						double differencewithRed, differencewithYellow = 0;
-						double differencewithBlue, differencewithWhite = 0;
-
-						differencewithRed = Math.sqrt(Math.pow((lightVal[0] - 22), 2) + Math.pow((lightVal[1] - 2), 2)
-								+ Math.pow((lightVal[2] - 2), 2));
-						differencewithYellow = Math.sqrt(Math.pow((lightVal[0] - 39), 2)
-								+ Math.pow((lightVal[1] - 28), 2) + Math.pow((lightVal[2] - 4), 2));
-						differencewithBlue = Math.sqrt(Math.pow((lightVal[0] - 5), 2) + Math.pow((lightVal[1] - 12), 2)
-								+ Math.pow((lightVal[2] - 17), 2));
-						differencewithWhite = Math.sqrt(Math.pow((lightVal[0] - 45), 2)
-								+ Math.pow((lightVal[1] - 47), 2) + Math.pow((lightVal[2] - 35), 2));
-
-						// 1: Red, 2: Blue, 3: Yellow, 4: White -99: noise
-						if ((differencewithRed < 15)) {
-							BlockColor = 1;
-						} else if ((differencewithYellow < 15)) {
-							BlockColor = 2;
-						} else if ((differencewithBlue < 15)) {
-							Sound.beepSequenceUp();
-							BlockColor= 3;
-						} else if ((differencewithWhite < 15)) {
-							BlockColor = 4;
-						}
-						System.out.println("The color block is: "+color);
-					}
+					ifFound = false;
+					System.out.println("Light val: " + lightVal[0] + "|" + lightVal[1] + "|" + lightVal[2]);
+					//System.out.println("Color table: " + colorTable[BlockColor]);
+					System.out.println("The color block is: " + BlockColor);
+					Sound.beep();
 				}
 			}
-
-			if (ifFound == true) { // target block is found beep twice
-				isTargetBlockFound=true;
-				Sound.twoBeeps();
-				moveToFinalLocation();
-				// ToDo: better handling of exit
-				System.exit(0);
-			} else if (ifFound == false) { // beep once
-				Sound.beep();
-				// addBlockToSearchList(TBColor);
-			}
+			
 			Robot.alterSpeed("DRIVE");
 			if (direction == 1) {
-				//System.out.println("odometer before adding block: " + odometer.getX() + "|" + odometer.getY());
+				// System.out.println("odometer before adding block: " + odometer.getX() + "|" +
+				// odometer.getY());
 				double xTB = odometer.getX() + Robot.forwardLightSensorOffset + Robot.usSensorOffset + 1.5 + 5;
 				colorBlockList.add(new ColorBlock(xTB, odometer.getY(), BlockColor));
 			} else if (direction == 3) {
@@ -334,31 +356,30 @@ public class SearchTargetBlock {
 			}
 			System.out.println("Blocked added: " + colorBlockList.toString());
 			// turn back and continue with the path
-			returnToPath(xPrev,yPrev,angleToPerf);
+			returnToPath(xPrev, yPrev, angleToPerf);
 		}
 	}
-	
-	public void returnToPath(double xPrev,double yPrev,int angleToPerf) {
+
+	public void returnToPath(double xPrev, double yPrev, int angleToPerf) {
 		/*
-		if (direction == 1) {
-			Robot.travelTo(turnPoint - odometer.getX());
-		} else if (direction == 3) {
-			Robot.travelTo(odometer.getX()-turnPoint);
-		} else if (direction == 2) {
-			System.out.println("Move in 2: "+(odometer.getY()-turnPoint));
-			Robot.travelTo(odometer.getY()-turnPoint);
-		} else if (direction == 4) {
-			Robot.travelTo(odometer.getY()-turnPoint);
-		}
-		*/
+		 * if (direction == 1) { Robot.travelTo(turnPoint - odometer.getX()); } else if
+		 * (direction == 3) { Robot.travelTo(odometer.getX()-turnPoint); } else if
+		 * (direction == 2) {
+		 * System.out.println("Move in 2: "+(odometer.getY()-turnPoint));
+		 * Robot.travelTo(odometer.getY()-turnPoint); } else if (direction == 4) {
+		 * Robot.travelTo(odometer.getY()-turnPoint); }
+		 */
 		// turn back and continue with the path
+		Robot.stop();
+		Robot.alterSpeed("FAST");
 		System.out.println("Turn back to search path");
 		Robot.travelTo(xPrev, yPrev);
 		Robot.usMotor.rotate(-90);
-		Robot.turnTo(Math.toRadians(-90-angleToPerf));
-		Robot.travelTo(trueOffset*2); // get out of us sensor's range to avoid detecting the same block again
+		Robot.turnTo(Math.toRadians(90 - angleToPerf));
 		Robot.alterSpeed("SEARCH");
+		Robot.travelTo(trueOffset * 2); // get out of us sensor's range to avoid detecting the same block again
 	}
+
 	/**
 	 * This method verifies the distance detected by polling 5 data and calculate
 	 * the average
@@ -369,10 +390,10 @@ public class SearchTargetBlock {
 	public boolean verifyDistance(double distance) {
 		double totalDistance = 0;
 		boolean isDistanceValid = false;
-		
+
 		for (int i = 0; i < 5; i++) {
 			totalDistance += Robot.getDistance();
-			System.out.println("average distance: "+totalDistance);
+			System.out.println("average distance: " + totalDistance);
 		}
 
 		if (Math.abs(totalDistance / 5 - distance) < 5) {
@@ -436,9 +457,9 @@ public class SearchTargetBlock {
 		// System.out.println("in IsBlocke, x/y"+sensorX+" "+sensorY);
 		double predictedblockX = -99;
 		double predictedblockY = -99;
-		System.out.println("Direction when searching for blocklist: "+direction+" "+sensorX+" "+sensorY);
-		trueOffset=Math.tan(Math.toRadians(Robot.usSensorAngle))*distance+6;
-		
+		System.out.println("Direction when searching for blocklist: " + direction + " " + sensorX + " " + sensorY);
+		trueOffset = Math.tan(Math.toRadians(Robot.usSensorAngle)) * distance + 6;
+
 		if (direction == 1) { // same y sensor has smaller x
 			predictedblockY = sensorY + 8;
 			predictedblockX = sensorX + distance + 5; // 6 should be changed to an offset variable specified in class
@@ -457,12 +478,14 @@ public class SearchTargetBlock {
 		Iterator<ColorBlock> cbIterator = colorBlockList.iterator();
 		while (cbIterator.hasNext()) {
 			ColorBlock aBlock = cbIterator.next();
-			System.out.println("block iterator x, y, trueoffset,blockx,blocky,predx,predy" + sensorX + "|" + sensorY + "|"+trueOffset+"|"+
-					+ aBlock.getX() + "|" + aBlock.getY() + "|" + predictedblockX + "|" + predictedblockY);
-			if (Math.abs(aBlock.getX() - predictedblockX)+trueOffset <= 15 && Math.abs(aBlock.getY() - predictedblockY)+trueOffset <= 15) {
+			System.out.println("block iterator x, y, trueoffset,blockx,blocky,predx,predy" + sensorX + "|" + sensorY
+					+ "|" + trueOffset + "|" + +aBlock.getX() + "|" + aBlock.getY() + "|" + predictedblockX + "|"
+					+ predictedblockY);
+			if (Math.abs(aBlock.getX() - predictedblockX) + trueOffset <= 15
+					&& Math.abs(aBlock.getY() - predictedblockY) + trueOffset <= 15) {
 				isBlockSearched = true;
 				System.out.println("Block is searched!!");
-			}else {
+			} else {
 				System.out.println("Block is not  searched!!");
 			}
 		}
@@ -471,31 +494,16 @@ public class SearchTargetBlock {
 	}
 
 	/**
-	 * This method sets the target block using color
+	 * This method returns the color lookup table
 	 * 
-	 * @param int
-	 *            tb, the color of the target block
+	 * @param none
 	 */
-	public static void setTargetBlock(int tb) {
+	public static int[][] setTargetBlock() {
 		// set the RGB value of the target block
-		if (tb == 1) {
-			targetValue[0] = 22;
-			targetValue[1] = 2;
-			targetValue[2] = 2;
-		} else if (tb == 2) {
-			targetValue[0] = 5;
-			targetValue[1] = 12;
-			targetValue[2] = 17;
-		} else if (tb == 3) {
-			targetValue[0] = 39;
-			targetValue[1] = 28;
-			targetValue[2] = 4;
-		} else if (tb == 4) {
-			targetValue[0] = 45;
-			targetValue[1] = 47;
-			targetValue[2] = 35;
-		}
+		RGB rgbColor = new RGB();
+		return rgbColor.targetValue;
 	}
+
 	/*
 	 * This method moves the robot to final postion
 	 * 
@@ -504,7 +512,61 @@ public class SearchTargetBlock {
 		System.out.println("Moving to ending postion");
 		Robot.alterSpeed("FAST");
 		Sound.beepSequenceUp();
-		Robot.travelTo((LocalizationData.getURx()+1)*Robot.TILE_SIZE, (LocalizationData.getURy()+1)*Robot.TILE_SIZE);
+		Robot.travelTo((LocalizationData.getURx() + 1) * Robot.TILE_SIZE,
+				(LocalizationData.getURy() + 1) * Robot.TILE_SIZE);
+	}
+
+	private boolean isRed(double lightval[]) {
+		
+		if (lightval[0] < redBlockMean[0] + 2 * redBlockDev[0]
+				&& lightval[0] > redBlockMean[0] - 2 * redBlockDev[0]
+				&& lightval[1] < redBlockMean[1] + 2 * redBlockDev[1]
+				&& lightval[1] > redBlockMean[1] - 2 * redBlockDev[1]
+				&& lightval[2] < redBlockMean[2] + 2 * redBlockDev[2]
+				&& lightval[2] > redBlockMean[2] - 2 * redBlockDev[2]
+		) {
+			return true;
+		} else
+			return false;
+	}
+
+	private boolean isBlue(double lightval[]) {
+		if (lightval[0] < blueBlockMean[0] + 2 * blueBlockDev[0] 
+				&& lightval[0] > blueBlockMean[0] - 2 * blueBlockDev[0]
+				&& lightval[1] < blueBlockMean[1] + 2 * blueBlockDev[1]
+				&& lightval[1] > blueBlockMean[1] - 2 * blueBlockDev[1]
+				&& lightval[2] < blueBlockMean[2] + 2 * blueBlockDev[2]
+				&& lightval[2] > blueBlockMean[2] - 2 * blueBlockDev[2])
+		{
+			return true;
+		} else
+			return false;
+	}
+
+	private boolean isYellow(double lightval[]) {
+		if (lightval[0] < yellowBlockMean[0] + 2 * yellowBlockDev[0]
+				&& lightval[0] > yellowBlockMean[0] - 2 * yellowBlockDev[0]
+				&& lightval[1] < yellowBlockMean[1] + 2 * yellowBlockDev[1]
+				&& lightval[1] > yellowBlockMean[1] - 2 * yellowBlockDev[1]
+				&& lightval[2] < yellowBlockMean[2] + 2 * yellowBlockDev[2]
+				&& lightval[2] > yellowBlockMean[2] - 2 * yellowBlockDev[2])
+		{
+			return true;
+		} else
+			return false;
+	}
+
+	private boolean isWhite(double lightval[]) {
+		if (lightval[0] < whiteBlockMean[0] + 2 * whiteBlockDev[0]
+				&& lightval[0] > whiteBlockMean[0] - 2 * whiteBlockDev[0]
+				&& lightval[1] < whiteBlockMean[1] + 2 * whiteBlockDev[1]
+				&& lightval[1] > whiteBlockMean[1] - 2 * whiteBlockDev[1]
+				&& lightval[2] < whiteBlockMean[2] + 2 * whiteBlockDev[2]
+				&& lightval[2] > whiteBlockMean[2] - 2 * whiteBlockDev[2]) 
+		{
+			return true;
+		} else
+			return false;
 	}
 
 }
