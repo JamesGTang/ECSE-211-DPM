@@ -43,7 +43,7 @@ public class Robot {
 	// robot sensor placement data
 	public static double floorSensorOffset=2.0; // distance of light sensor to wheel axis
 	public static double usSensorOffset=7;
-	public static double usSensorAngle=4;  // angle for ultrasonic sensor detection, which correlates to distance
+	public static double usSensorAngle=15;  // angle for ultrasonic sensor detection, which correlates to distance
 	public static final double forwardLightSensorOffset=1.5; // how far the forward facing light sensor is from the ultrasonic sensor
 	public static int usMotorAngle=0;
 	private static double OFF_CONST=1.02;
@@ -63,7 +63,9 @@ public class Robot {
 	 * @throws OdometerExceptions 
 	 */
 	public static int init(int startingPoint) throws OdometerExceptions {
-		System.out.println("Robot initialized with odometer, odometer display");
+		usMotor.setSpeed(100);
+		usMotor.setAcceleration(50);
+		//System.out.println("Robot initialized with odometer, odometer display");
 		driveState=DriveState.STOP;
 		loc=LocalizationCategory.NONE;
 		Starting_Corner=startingPoint;
@@ -208,7 +210,8 @@ public class Robot {
 		double xCurrent=odometer.getX();
 		double yCurrent=odometer.getY();
 		double thetaCurrent=odometer.getTheta();
-		System.out.println("In the model: xDest,yDest"+xDest+" "+yDest);
+		System.out.println("Xdest,YDest: "+xDest+" "+yDest);
+		System.out.println("In the model: xCurrent,yCurrent,Theta"+xCurrent+" "+yCurrent+" "+thetaCurrent);
 		double dX=xDest-xCurrent;
 		double dY=yDest-yCurrent;
 		double linearDistance=robotUtil.getLinearDistance(dX, dY);
@@ -243,7 +246,7 @@ public class Robot {
 	public static void squareTravelTo(double xDest,double yDest) {
 		double xCurrent=odometer.getX();
 		double yCurrent=odometer.getY();
-		
+		System.out.println("In the sqaure travel: xCurrent,yCurrent,Theta"+xCurrent+" "+yCurrent+" "+odometer.getTheta());
 		// convert coordinate to length
 		double dX=xDest-xCurrent;
 		double dY=yDest-yCurrent;
@@ -259,7 +262,8 @@ public class Robot {
 		System.out.println("Covering dx to starting point");
 		travelTo(dX);
 		// turn back to align with y axis
-		turnTo(-angularDistance);
+		turnTo(-angularDistance); 
+		System.out.println("In the sqaure travel: xCurrent,yCurrent,Theta"+odometer.getX()+" "+odometer.getY()+" "+odometer.getTheta());
 	}
 	
 	
@@ -380,15 +384,15 @@ public class Robot {
 	 */
 	public static void alterSpeed(String type) {
 		if(type=="DRIVE") {
-			FORWARD_SPEED = 150;
-			ACCELERATION_SPEED=100;
+			FORWARD_SPEED = 125;
+			ACCELERATION_SPEED=75;
 		}else if(type=="SEARCH") {
-			FORWARD_SPEED = 100;
+			FORWARD_SPEED = 150;
 			ACCELERATION_SPEED=75;
 		}else if(type=="COR") {
 			FORWARD_SPEED = 50;
 			ACCELERATION_SPEED=50;
-		}else if(type=="FASE") {
+		}else if(type=="FAST") {
 			FORWARD_SPEED = 200;
 			ACCELERATION_SPEED=150;
 		}

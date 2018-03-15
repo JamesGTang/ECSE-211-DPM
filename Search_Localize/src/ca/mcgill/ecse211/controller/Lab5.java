@@ -1,6 +1,7 @@
 package ca.mcgill.ecse211.controller;
 
 import ca.mcgill.ecse211.odometer.*;
+
 import ca.mcgill.ecse211.data.LocalizationData;
 import ca.mcgill.ecse211.lightsensor.ColorTest;
 import ca.mcgill.ecse211.lightsensor.LightSensorController;
@@ -15,9 +16,8 @@ public class Lab5 {
 	public static OdometryCorrection odometryCorrection;
 	// defines data for search area {LLx,LLy,URx,URy,TB,SC} for lab 5 the SC will be set to 0
 	public static int coordinates[]= {2,2,6,6,1,0};
-	
-	@SuppressWarnings("deprecation")
-	public static void main(String[] args) throws OdometerExceptions {
+
+	public static void main(String[] args) throws OdometerExceptions, InterruptedException {
 
 		int buttonChoice;
 		// start all threads and all robot in-class services
@@ -40,7 +40,6 @@ public class Lab5 {
 		
 		if (buttonChoice == Button.ID_LEFT) {
 			// when press down, enter color data collection
-						//System.out.println("Start color sensor data collection");
 						Sound.beepSequenceUp();
 						LightSensorController newCont=new LightSensorController() {
 							
@@ -69,25 +68,28 @@ public class Lab5 {
 			UltrasonicPoller usPoller = new UltrasonicPoller(Robot.usDistance, Robot.usData, usLocal);
 			// run ultrasonic thread last to save resources
 			usPoller.start();
-			/*
+	
 			// update the robot model
 			Robot.loc=Robot.LocalizationCategory.FALLING_EDGE;
 			// temporary alter speed to slowest for accurate correction
 			Robot.alterSpeed("COR");
 			System.out.println("US localization: "+Robot.loc);
 			// do something with localizer
+
 			System.out.println("Start localization method");
 			usLocal.localize();
 			// beep twice when the localization finishes
 			Sound.twoBeeps();
 			System.out.println("Complete Ultrasonic Loc");
-			
+			Robot.alterSpeed("DRIVE");
 			LightLocalizer newLightLoc=new LightLocalizer(Odometer.getOdometer());
 			newLightLoc.localize();
 			Sound.twoBeeps();
+
 			System.out.println("Complete Light Loc");
-			// ToDo: implement search method
-			//p1: navigate to the point of the starting point
+			System.out.println("Stop US thread");
+			usPoller.setRun(false);
+
 			// set the odometer data accordingly*/
 			Robot.setSCOdometer();
 			
@@ -98,44 +100,35 @@ public class Lab5 {
 				// setting is failed
 				System.out.println("Coordinate update failed");
 			}
-			/**move to the starting coordinate of the search zone, use only travelTo() to avoid cross the search zone unintentionally
-			 * 	move to center of tile before going to search zone
-			 * ToDo: here we should use odometry correction to make sure the odometer is in sync with robot's actual location
-			 */
-			// we start the odometer correction thread first
-			// change the speed back for small turn
-			
-			//below if for 
-			/*Robot.alterSpeed("SEARCH");
+			// change the speed back for small turn	
+			Robot.alterSpeed("SEARCH");
 			System.out.println("Travel to center of tile for start");
 			Robot.turnTo(Math.toRadians(-45));
 			Robot.travelTo(21.55);
 			Robot.turnTo(Math.toRadians(45));// move in y direction a distance of dy
 			System.out.println("After going to middle of tile x/y"+Odometer.getOdometer().getXYT()[0]+"|"+Odometer.getOdometer().getXYT()[1]);
 			System.out.println("Go to starting point of search");
-			odocorrectionThread.start();
+			// odocorrectionThread.start();
 			// change the speed back for small turn
 			Robot.alterSpeed("DRIVE");
-			Robot.squareTravelTo((LocalizationData.getLLx()-0.5)*Robot.TILE_SIZE,(LocalizationData.getLLy()-1.5)*Robot.TILE_SIZE);
+			Robot.squareTravelTo((LocalizationData.getLLx()-0.5)*Robot.TILE_SIZE,(LocalizationData.getLLy()-0.5)*Robot.TILE_SIZE);
 			System.out.println("Arriving at SC, x/y/theta"+Odometer.getOdometer().getXYT()[0]+"|"+Odometer.getOdometer().getXYT()[1]+"|"+Odometer.getOdometer().getTheta());
 			System.out.println("Stopping odometer correction thread");
-			// ToDo: use in thread stop machanism to stop the thread
+			
+			Odometer.getOdometer().setXYT(Robot.TILE_SIZE, Robot.TILE_SIZE, 0);
+			Robot.squareTravelTo((LocalizationData.getLLx()-0.5)*Robot.TILE_SIZE,(LocalizationData.getLLy()-0.5)*Robot.TILE_SIZE);
+			Odometer.getOdometer().setXYT((LocalizationData.getLLx()-0.5)*Robot.TILE_SIZE,(LocalizationData.getLLy()-0.5)*Robot.TILE_SIZE,0);
+			
 			// turn the sensor in right direction
 			Robot.usMotor.rotate(-180);
-			odocorrectionThread.stop();*/
 			// now start search
 			Robot.alterSpeed("SEARCH");
 			SearchTargetBlock newSearch=new SearchTargetBlock(coordinates[4]);
-			// UltrasonicPoller usSearchPoller = new UltrasonicPoller(Robot.usDistance, Robot.usData,newSearch);	
-			// run ultrasonic thread last to save resources
-			// usSearchPoller.start();
 			newSearch.SearchTarget();
-			System.out.println("Search finished");	
+			System.out.println("Search finished");
 			Robot.lcd.drawString("Finished", 0, 1);
 			while (Button.waitForAnyPress() != Button.ID_ESCAPE);
 			System.exit(0);
-		}else if(buttonChoice==Button.ID_DOWN){
-			
 		}
 		while (Button.waitForAnyPress() != Button.ID_ESCAPE);
 		System.exit(0);

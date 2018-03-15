@@ -39,7 +39,7 @@ public class OdometerData {
    * instance of this class is ever created.
    */
   protected OdometerData() {
-	System.out.println("Odomter thread started success!");
+	//System.out.println("Odomter thread started success!");
     this.x = 0;
     this.y = 0;
     this.theta = 0;

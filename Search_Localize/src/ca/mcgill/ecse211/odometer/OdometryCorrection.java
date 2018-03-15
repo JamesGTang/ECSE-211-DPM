@@ -65,7 +65,7 @@ public class OdometryCorrection implements Runnable {
 					offset = yLine * Robot.TILE_SIZE;
 					odometer.setX(offset);
 				}
-				System.out.println("Corrected");
+				//System.out.println("Corrected");
 			}
 			// this ensure the odometry correction occurs only once every period
 			correctionEnd = System.currentTimeMillis();
