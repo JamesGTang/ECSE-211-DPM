@@ -39,8 +39,6 @@ public class UltrasonicLocalizer implements UltrasonicController{
 			// trap process until valid data is received
 			while(dist>maxD) {
 				// find the left wall
-				System.out.println("Turning L");
-				// prevent noise in the odometer reading
 				Robot.turn("LEFT");
 			}
 			Robot.stop();
@@ -140,6 +138,8 @@ public class UltrasonicLocalizer implements UltrasonicController{
 	 * This method verifies the falling edge and rising edge is applied correct and check if any mechanical error
 	 */
 	public void verifyCorrection() {
+
+		
 		Robot.alterSpeed("DRIVE");
 		// turn usMotor 90 degree to face west wall
 		Robot.usMotor.setSpeed(50);
@@ -164,7 +164,8 @@ public class UltrasonicLocalizer implements UltrasonicController{
 		}else {
 			//do nothing here
 		}
-		Robot.alterSpeed("COR");
+		Robot.alterSpeed("FAST");
+		
 		
 	}
 }

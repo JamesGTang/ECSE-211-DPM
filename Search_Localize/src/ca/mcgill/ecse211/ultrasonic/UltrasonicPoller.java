@@ -11,6 +11,7 @@ public class UltrasonicPoller extends Thread {
   private SampleProvider us;
   private UltrasonicController cont;
   private float[] usData;
+  private boolean isRun=true;
   public UltrasonicPoller(SampleProvider us, float[] usData, UltrasonicController cont) {
     this.us = us;
     this.cont = cont;
@@ -25,7 +26,7 @@ public class UltrasonicPoller extends Thread {
    */
   public void run() {
     double distance;
-    while (true) {
+    while (isRun) {
       us.fetchSample(usData, 0); // acquire data
       distance = usData[0] * 100.0;
       if(isDistanceValid(distance)==true) {
@@ -56,5 +57,9 @@ public class UltrasonicPoller extends Thread {
 		  return false;	  
 	  }
 	  return true;  
+  }
+  
+  public void setRun(boolean status) {
+	  isRun=status;
   }
 }

@@ -12,6 +12,7 @@ import ca.mcgill.ecse211.odometer.Odometer;
 import ca.mcgill.ecse211.odometer.OdometerExceptions;
 import ca.mcgill.ecse211.util.robotUtil;
 import lejos.hardware.Sound;
+import lejos.hardware.Sounds;
 
 public class SearchTargetBlock {
 	private double distance;
@@ -43,24 +44,27 @@ public class SearchTargetBlock {
 	public double blueBlockDev[] = new double[] { 3.272273, 10.27079, 4.102944 };
 	public double yellowBlockDev[] = new double[] { 58.75809, 32.7203, 3.307891 };
 	public double whiteBlockDev[] = new double[] { 71.93577, 52.65776, 22.49775 };
+	long startTime;
 
 	public SearchTargetBlock(int tb) throws OdometerExceptions {
 		odometer = Odometer.getOdometer();
-		// ToDo: this line must be taken out before demo! this is used during testing to
-		// substitute for falling edge correction
-		//odometer.setXYT(45.72, 45.72, 0);
 		xRange = (LocalizationData.getURx() - LocalizationData.getLLx()) / 2 * Robot.TILE_SIZE+10;
 		yRange = (LocalizationData.getURy() - LocalizationData.getLLy()) / 2 * Robot.TILE_SIZE+10;
-		// System.out.println("Valid x/y: " + xRange + " " + yRange);
 		System.out.println("Setting target block");
 		this.tb = tb;
 		colorTable = setTargetBlock();
-		//System.out.println(colorTable.toString());
+		startTime = System.currentTimeMillis();
 	}
 
 	public void SearchTarget() throws InterruptedException {
 		// Robot.driveForward();
+		
 		for (int i = 1; i <= 4; i++) {
+			if(System.currentTimeMillis()-startTime>=21000) {
+				moveToFinalLocation();
+				System.out.println("Killed");
+				System.exit(0);
+			}
 			// set the direction at start
 			Robot.alterSpeed("SEARCH");
 			Robot.driveForward();
@@ -74,18 +78,13 @@ public class SearchTargetBlock {
 				// robot heading alone y
 				isMovingX = false;
 				System.out.println("Moving alone y, vertice:  " + direction);
-				double linearOffset = (LocalizationData.getURy() + 0.5) * Robot.TILE_SIZE;
+				double linearOffset = (LocalizationData.getURy()+ 0.5) * Robot.TILE_SIZE;
 				// keep driving until the robot's y covers search zone y
 				while (odometer.getY() <= linearOffset) {
 					// if a block is detected
 					distance = Robot.getDistance();
-					System.out.println("Distance: " + distance);
 					// System.out.println(distance+"|"+searchRange);
 					if (distance < searchRange && !isBlockSearched(distance)) {
-						/*
-						 * if(isBlockSearched(distance)) { // if block is searched, move forward
-						 * Robot.travelTo(15); }
-						 */
 						Robot.stop();
 						if (verifyDistance(distance)) {
 							discoverBlock(Robot.getDistance());
@@ -166,7 +165,6 @@ public class SearchTargetBlock {
 			}
 			Robot.stop();
 			Robot.turnTo(Math.toRadians(90));
-			// ToDo: exit loop if found
 		}
 	}
 
@@ -185,9 +183,6 @@ public class SearchTargetBlock {
 		trueOffset = Math.tan(Math.toRadians(Robot.usSensorAngle)) * distance + 5;
 		boolean isOverDrove = false;
 		double xPrev, yPrev;
-		// System.out.println("Distance: "+distance);
-		// System.out.println("Odometer here: "+odometer.getX()+" "+odometer.getY());
-		// System.out.println("True offset according to angle is: "+trueOffset);
 		int angleToPerf = 0;
 
 		if (!ifFound) {
@@ -200,6 +195,11 @@ public class SearchTargetBlock {
 			Robot.stop();
 			// align axis with the block
 			Robot.travelTo(trueOffset);
+			
+			// record the x and y value now
+			xPrev = odometer.getX();
+			yPrev = odometer.getY();
+			
 			// System.out.println("Turn to face the block");
 			Robot.turnTo(Math.toRadians(90));
 			// rotate us motor 90 degree to face forward
@@ -241,11 +241,7 @@ public class SearchTargetBlock {
 
 			Robot.usMotor.rotate(+30);
 
-			// record the x and y value now
-			xPrev = odometer.getX();
-			yPrev = odometer.getY();
-
-			if ((rEdge - lEdge) / 2 + lEdge >= 90) {
+			if ((rEdge - lEdge) / 2 + lEdge > 90) {
 				// needs to turn right slightly
 				angleToPerf = (rEdge - lEdge) / 2 + lEdge - 90;
 			} else if ((rEdge - lEdge) / 2 + lEdge < 90) {
@@ -257,7 +253,7 @@ public class SearchTargetBlock {
 			Robot.turnTo(Math.toRadians(angleToPerf));
 
 			// approach the block slowly
-			Robot.alterSpeed("SEARCH");
+			Robot.alterSpeed("FAST");
 			System.out.println("Discovering the block by driving toward");
 
 			Robot.driveForward();
@@ -272,32 +268,13 @@ public class SearchTargetBlock {
 			}
 			// distance is less than 6, move even slower
 			Robot.alterSpeed("COR");
-
-			/*
-			 * if (robotUtil.getLinearDistance(odometer.getX() - xPrev, odometer.getY() -
-			 * yPrev) >= distance) { isOverDrove = true;
-			 * System.out.println("Color sensor overdrove"); returnToPath(xPrev, yPrev,
-			 * angleToPerf); return; }
-			 */
-			Robot.travelTo(8);
+			Robot.travelTo(0);
 			System.out.println("Touching block and Calculate color");
 			color = Robot.getColor();
 			lightVal[0] = color[0] * 1000.0; // R value
 			lightVal[1] = color[1] * 1000.0; // G value
 			lightVal[2] = color[2] * 1000.0; // B value
-			/*
-			// determine the block if not target block
-			double differencewithRed, differencewithYellow, differencewithBlue, differencewithWhite = 0;
-
-			differencewithRed = Math.sqrt(Math.pow((lightVal[0] - colorTable[1][0]), 2)
-					+ Math.pow((lightVal[1] - colorTable[1][1]), 2) + Math.pow((lightVal[2] - colorTable[1][2]), 2));
-			differencewithYellow = Math.sqrt(Math.pow((lightVal[0] - colorTable[2][0]), 2)
-					+ Math.pow((lightVal[1] - colorTable[2][1]), 2) + Math.pow((lightVal[2] - colorTable[2][2]), 2));
-			differencewithBlue = Math.sqrt(Math.pow((lightVal[0] - colorTable[3][0]), 2)
-					+ Math.pow((lightVal[1] - colorTable[3][1]), 2) + Math.pow((lightVal[2] - colorTable[3][2]), 2));
-			differencewithWhite = Math.sqrt(Math.pow((lightVal[0] - colorTable[4][0]), 2)
-					+ Math.pow((lightVal[1] - colorTable[4][1]), 2) + Math.pow((lightVal[2] - colorTable[4][2]), 2));
-			*/
+			Sound.beep();
 			System.out.println("Light val: " + lightVal[0] + "|" + lightVal[1] + "|" + lightVal[2]);
 			// 1: Red, 2: Blue, 3: Yellow, 4: White -99: noise
 			if (isRed(lightVal)) {
@@ -309,8 +286,27 @@ public class SearchTargetBlock {
 			} else if (isBlue(lightVal)) {
 				BlockColor = 2;
 			} else {
+				Sound.beep();
 				BlockColor = 0;
-				//ToDO: If not found, repeat the loop again
+				Robot.travelTo(1);
+				
+				System.out.println("Touching block again and Calculate color");
+				color = Robot.getColor();
+				lightVal[0] = color[0] * 1000.0; // R value
+				lightVal[1] = color[1] * 1000.0; // G value
+				lightVal[2] = color[2] * 1000.0; // B value
+				
+				if (isRed(lightVal)) {
+					BlockColor = 1;
+				} else if (isYellow(lightVal)) {
+					BlockColor = 3;
+				} else if (isWhite(lightVal)) {
+					BlockColor = 4;
+				} else if (isBlue(lightVal)) {
+					BlockColor = 2;
+				} else {
+					BlockColor = 0;
+				}
 			}
 			
 			// if block is still 0, there is no color detected
@@ -361,18 +357,12 @@ public class SearchTargetBlock {
 	}
 
 	public void returnToPath(double xPrev, double yPrev, int angleToPerf) {
-		/*
-		 * if (direction == 1) { Robot.travelTo(turnPoint - odometer.getX()); } else if
-		 * (direction == 3) { Robot.travelTo(odometer.getX()-turnPoint); } else if
-		 * (direction == 2) {
-		 * System.out.println("Move in 2: "+(odometer.getY()-turnPoint));
-		 * Robot.travelTo(odometer.getY()-turnPoint); } else if (direction == 4) {
-		 * Robot.travelTo(odometer.getY()-turnPoint); }
-		 */
+
 		// turn back and continue with the path
 		Robot.stop();
 		Robot.alterSpeed("FAST");
 		System.out.println("Turn back to search path");
+		System.out.println(xPrev+"|"+yPrev);
 		Robot.travelTo(xPrev, yPrev);
 		Robot.usMotor.rotate(-90);
 		Robot.turnTo(Math.toRadians(90 - angleToPerf));
@@ -489,7 +479,6 @@ public class SearchTargetBlock {
 				System.out.println("Block is not  searched!!");
 			}
 		}
-		// System.out.println("Block searched: " + isBlockSearched);
 		return isBlockSearched;
 	}
 
@@ -512,9 +501,15 @@ public class SearchTargetBlock {
 		System.out.println("Moving to ending postion");
 		Robot.alterSpeed("FAST");
 		Sound.beepSequenceUp();
-		Robot.travelTo((LocalizationData.getURx() + 1) * Robot.TILE_SIZE,
-				(LocalizationData.getURy() + 1) * Robot.TILE_SIZE);
+		Robot.travelTo((LocalizationData.getURx() + 0.5) * Robot.TILE_SIZE,
+				(LocalizationData.getURy() + 0.5) * Robot.TILE_SIZE);
 	}
+	/*
+	public static void  timeUp() {
+		long startTime =System.nanoTime();
+		methodToTime();
+		
+	}*/
 
 	private boolean isRed(double lightval[]) {
 		

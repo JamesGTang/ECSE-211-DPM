@@ -210,7 +210,8 @@ public class Robot {
 		double xCurrent=odometer.getX();
 		double yCurrent=odometer.getY();
 		double thetaCurrent=odometer.getTheta();
-		System.out.println("In the model: xDest,yDest"+xDest+" "+yDest);
+		System.out.println("Xdest,YDest: "+xDest+" "+yDest);
+		System.out.println("In the model: xCurrent,yCurrent,Theta"+xCurrent+" "+yCurrent+" "+thetaCurrent);
 		double dX=xDest-xCurrent;
 		double dY=yDest-yCurrent;
 		double linearDistance=robotUtil.getLinearDistance(dX, dY);
@@ -245,7 +246,7 @@ public class Robot {
 	public static void squareTravelTo(double xDest,double yDest) {
 		double xCurrent=odometer.getX();
 		double yCurrent=odometer.getY();
-		
+		System.out.println("In the sqaure travel: xCurrent,yCurrent,Theta"+xCurrent+" "+yCurrent+" "+odometer.getTheta());
 		// convert coordinate to length
 		double dX=xDest-xCurrent;
 		double dY=yDest-yCurrent;
@@ -261,7 +262,8 @@ public class Robot {
 		System.out.println("Covering dx to starting point");
 		travelTo(dX);
 		// turn back to align with y axis
-		turnTo(-angularDistance);
+		turnTo(-angularDistance); 
+		System.out.println("In the sqaure travel: xCurrent,yCurrent,Theta"+odometer.getX()+" "+odometer.getY()+" "+odometer.getTheta());
 	}
 	
 	
@@ -382,8 +384,8 @@ public class Robot {
 	 */
 	public static void alterSpeed(String type) {
 		if(type=="DRIVE") {
-			FORWARD_SPEED = 150;
-			ACCELERATION_SPEED=100;
+			FORWARD_SPEED = 125;
+			ACCELERATION_SPEED=75;
 		}else if(type=="SEARCH") {
 			FORWARD_SPEED = 150;
 			ACCELERATION_SPEED=75;

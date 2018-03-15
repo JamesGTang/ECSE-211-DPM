@@ -116,6 +116,7 @@ public class Odometer extends OdometerData implements Runnable {
     
     while (true) {
       updateStart = System.currentTimeMillis();
+     theta = getXYT()[2];
       double deltaTheta;
       double deltaDist;
       double dLeft,dRight, dX,dY;
