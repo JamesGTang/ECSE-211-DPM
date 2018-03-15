@@ -5,13 +5,13 @@ import java.util.Iterator;
 
 
 import ca.mcgill.ecse211.data.ColorBlock;
-import ca.mcgill.ecse211.data.LocalizationData;
+import ca.mcgill.ecse211.data.GameData;
+import ca.mcgill.ecse211.data.RGB;
 import ca.mcgill.ecse211.model.Robot;
 import ca.mcgill.ecse211.odometer.Odometer;
 import ca.mcgill.ecse211.odometer.OdometerExceptions;
 import ca.mcgill.ecse211.util.robotUtil;
 import lejos.hardware.Sound;
-import lejos.hardware.Sounds;
 
 public class SearchTargetBlock {
 	private double distance;
@@ -34,21 +34,21 @@ public class SearchTargetBlock {
 	private boolean isTargetBlockFound = false; // this tracks if TB is found
 	double trueOffset;
 	int tb;
-	public double redBlockMean[] = new double[] { 91, 11, 0 };
-	public double blueBlockMean[] = new double[] { 9.74, 20.35, 23.38 };
-	public double yellowBlockMean[] = new double[] { 149.89, 98.01, 8.705 };
-	public double whiteBlockMean[] = new double[] { 109.49, 132.15, 65.35 };
+	public double redBlockMean[] = new double[] { 97, 12, 5.6 };
+	public double blueBlockMean[] = new double[] { 12.65, 57, 25.9 };
+	public double yellowBlockMean[] = new double[] { 114.4, 80.8, 8.33 };
+	public double whiteBlockMean[] = new double[] { 119, 114.15, 57.5 };
 
-	public double redBlockDev[] = new double[] { 21.16945, 3.307641, 3 };
-	public double blueBlockDev[] = new double[] { 3.272273, 10.27079, 4.102944 };
-	public double yellowBlockDev[] = new double[] { 58.75809, 32.7203, 3.307891 };
-	public double whiteBlockDev[] = new double[] { 71.93577, 52.65776, 22.49775 };
+	public double redBlockDev[] = new double[] { 5.57, 1.47, 0.939 };
+	public double blueBlockDev[] = new double[] { 1.63, 3.096235822, 1.860715489 };
+	public double yellowBlockDev[] = new double[] { 8.942279329, 7.408652396, 1.067993805 };
+	public double whiteBlockDev[] = new double[] { 7.280961704, 6.421787875, 2.607317883 };
 	long startTime;
 
 	public SearchTargetBlock(int tb) throws OdometerExceptions {
 		odometer = Odometer.getOdometer();
-		xRange = (LocalizationData.getURx() - LocalizationData.getLLx()) / 2 * Robot.TILE_SIZE+10;
-		yRange = (LocalizationData.getURy() - LocalizationData.getLLy()) / 2 * Robot.TILE_SIZE+10;
+		xRange = (GameData.getURx() - GameData.getLLx()) / 2 * Robot.TILE_SIZE+10;
+		yRange = (GameData.getURy() - GameData.getLLy()) / 2 * Robot.TILE_SIZE+10;
 		System.out.println("Setting target block");
 		this.tb = tb;
 		colorTable = setTargetBlock();
@@ -77,7 +77,7 @@ public class SearchTargetBlock {
 				// robot heading alone y
 				isMovingX = false;
 				System.out.println("Moving alone y, vertice:  " + direction);
-				double linearOffset = (LocalizationData.getURy()+ 0.5) * Robot.TILE_SIZE;
+				double linearOffset = (GameData.getURy()+ 0.5) * Robot.TILE_SIZE;
 				// keep driving until the robot's y covers search zone y
 				while (odometer.getY() <= linearOffset) {
 					// if a block is detected
@@ -100,7 +100,7 @@ public class SearchTargetBlock {
 				// robot heading alone x
 				isMovingX = true;
 				System.out.println("Moving alone x, vertice:  " + direction);
-				double linearOffset = (LocalizationData.getURx() + 0.5) * Robot.TILE_SIZE;
+				double linearOffset = (GameData.getURx() + 0.5) * Robot.TILE_SIZE;
 				// keep driving until the robot's y covers search zone y
 				while (odometer.getX() <= linearOffset) {
 					// if a block is detected
@@ -122,7 +122,7 @@ public class SearchTargetBlock {
 				// robot heading alone y
 				isMovingX = false;
 				System.out.println("Moving alone y, vertice:  " + direction);
-				double linearOffset = (LocalizationData.getLLy() - 0.5) * Robot.TILE_SIZE;
+				double linearOffset = (GameData.getLLy() - 0.5) * Robot.TILE_SIZE;
 				// keep driving until the robot's y covers search zone y
 				while (odometer.getY() >= linearOffset) {
 					// if a block is detected
@@ -144,7 +144,7 @@ public class SearchTargetBlock {
 				// robot heading alone x
 				isMovingX = true;
 				System.out.println("Moving alone x, vertice:  " + direction);
-				double linearOffset = (LocalizationData.getLLx() - 0.5) * Robot.TILE_SIZE;
+				double linearOffset = (GameData.getLLx() - 0.5) * Robot.TILE_SIZE;
 				// keep driving until the robot's y covers search zone y
 				while (odometer.getX() >= linearOffset) {
 					// if a block is detected
@@ -194,13 +194,7 @@ public class SearchTargetBlock {
 			Robot.stop();
 			// align axis with the block
 			Robot.travelTo(trueOffset);
-<<<<<<< HEAD
-			Robot.turnTo(Math.toRadians(90));
-			// rotate us motor 90 degree to face forward
-			Robot.usMotor.rotate(90);
-=======
 			
->>>>>>> 73317d1b279c5edb453d770091ef72a1935f37dd
 			// record the x and y value now
 			xPrev = odometer.getX();
 			yPrev = odometer.getY();
@@ -273,16 +267,6 @@ public class SearchTargetBlock {
 			}
 			// distance is less than 6, move even slower
 			Robot.alterSpeed("COR");
-<<<<<<< HEAD
-
-			// ToDo: keep moving until a color is detected,
-			while (!ifBlockDetected&&!isOverDrove) {
-				if(robotUtil.getLinearDistance(odometer.getX()-xPrev, odometer.getY()-yPrev)>=distance) {
-					isOverDrove=true;
-					System.out.println("Distance overdrove");
-				}
-				System.out.println("Color block detected");
-=======
 			Robot.travelTo(0);
 			System.out.println("Touching block and Calculate color");
 			color = Robot.getColor();
@@ -306,7 +290,6 @@ public class SearchTargetBlock {
 				Robot.travelTo(1);
 				
 				System.out.println("Touching block again and Calculate color");
->>>>>>> 73317d1b279c5edb453d770091ef72a1935f37dd
 				color = Robot.getColor();
 				lightVal[0] = color[0] * 1000.0; // R value
 				lightVal[1] = color[1] * 1000.0; // G value
@@ -484,17 +467,11 @@ public class SearchTargetBlock {
 		Iterator<ColorBlock> cbIterator = colorBlockList.iterator();
 		while (cbIterator.hasNext()) {
 			ColorBlock aBlock = cbIterator.next();
-<<<<<<< HEAD
-			System.out.println("block iterator x, y, blockx,blocky,predx,predy" + sensorX + "|" + sensorY + "|"
-					+ aBlock.getX() + "|" + aBlock.getY() + "|" + predictedblockX + "|" + predictedblockY);
-			if (Math.abs(aBlock.getX() - predictedblockX-5) <= 15 && Math.abs(aBlock.getY() - predictedblockY-5) <= 15) {
-=======
 			System.out.println("block iterator x, y, trueoffset,blockx,blocky,predx,predy" + sensorX + "|" + sensorY
 					+ "|" + trueOffset + "|" + +aBlock.getX() + "|" + aBlock.getY() + "|" + predictedblockX + "|"
 					+ predictedblockY);
 			if (Math.abs(aBlock.getX() - predictedblockX) + trueOffset <= 15
 					&& Math.abs(aBlock.getY() - predictedblockY) + trueOffset <= 15) {
->>>>>>> 73317d1b279c5edb453d770091ef72a1935f37dd
 				isBlockSearched = true;
 				System.out.println("Block is searched!!");
 			} else {
@@ -523,8 +500,8 @@ public class SearchTargetBlock {
 		System.out.println("Moving to ending postion");
 		Robot.alterSpeed("FAST");
 		Sound.beepSequenceUp();
-		Robot.travelTo((LocalizationData.getURx() + 0.5) * Robot.TILE_SIZE,
-				(LocalizationData.getURy() + 0.5) * Robot.TILE_SIZE);
+		Robot.travelTo((GameData.getURx() + 0.5) * Robot.TILE_SIZE,
+				(GameData.getURy() + 0.5) * Robot.TILE_SIZE);
 	}
 	/*
 	public static void  timeUp() {

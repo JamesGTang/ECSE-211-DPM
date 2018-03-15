@@ -1,0 +1,16 @@
+#! /bin/bash
+
+ip="root@192.168.2.30"
+# This triggers ant build
+cd Desktop/Code/Robotics/Search_Localize
+# build class files
+ant
+# compile to jar
+ant build-jar
+# change directory
+cd build
+#scp ./build/Lab4.jar root@192.168.2.30:/home/root/lejos/prog
+sshpass -p '' ssh $ip
+cd home/root/lejos/prog
+jrun lab4.jar
+
