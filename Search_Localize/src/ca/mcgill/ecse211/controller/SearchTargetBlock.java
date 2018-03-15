@@ -170,7 +170,6 @@ public class SearchTargetBlock {
 			Robot.stop();
 			// align axis with the block
 			Robot.travelTo(trueOffset);
-			System.out.println("Turn to face the block");
 			Robot.turnTo(Math.toRadians(90));
 			// rotate us motor 90 degree to face forward
 			Robot.usMotor.rotate(90);
@@ -197,9 +196,6 @@ public class SearchTargetBlock {
 			}
 			// distance is less than 6, move even slower
 			Robot.alterSpeed("COR");
-			// set the block to be searched
-			System.out.println("Setting target block");
-			setTargetBlock(tb);
 
 			// ToDo: keep moving until a color is detected,
 			while (!ifBlockDetected&&!isOverDrove) {
@@ -207,7 +203,7 @@ public class SearchTargetBlock {
 					isOverDrove=true;
 					System.out.println("Distance overdrove");
 				}
-				System.out.println("This block is detected");
+				System.out.println("Color block detected");
 				color = Robot.getColor();
 				lightVal[0] = color[0] * 1000.0; // R value
 				lightVal[1] = color[1] * 1000.0; // G value
@@ -391,7 +387,7 @@ public class SearchTargetBlock {
 			ColorBlock aBlock = cbIterator.next();
 			System.out.println("block iterator x, y, blockx,blocky,predx,predy" + sensorX + "|" + sensorY + "|"
 					+ aBlock.getX() + "|" + aBlock.getY() + "|" + predictedblockX + "|" + predictedblockY);
-			if (Math.abs(aBlock.getX() - predictedblockX) <= 15 && Math.abs(aBlock.getY() - predictedblockY) <= 15) {
+			if (Math.abs(aBlock.getX() - predictedblockX-5) <= 15 && Math.abs(aBlock.getY() - predictedblockY-5) <= 15) {
 				isBlockSearched = true;
 			}
 		}
