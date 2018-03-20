@@ -1,14 +1,18 @@
 package ca.mcgill.ecse211.data;
 
-import lejos.hardware.Button;
 import java.util.Map;
 import ca.mcgill.ecse211.WiFiClient.WifiConnection;
 import ca.mcgill.ecse211.data.GameData;
 
+/**
+ * This class holds methods for fetching data from server via wifi
+ * @author jamestang
+ *
+ */
 public class Wifi {
 	// ToDo: this must be changed before demo
 	private static final String SERVER_IP = "192.168.2.3";
-	private static final int TEAM_NUMBER = 1;
+	private static final int TEAM_NUMBER = 5;
 	
 	// LocalizationData Attributes only used for testing and in case the wifi connection returns null object failed
 	public static int RedTeam = 1; // RedTeam (i=1,20) – Team starting out from red zone
@@ -50,9 +54,13 @@ public class Wifi {
 	public static int SG_UR_y = 2; // SG_UR (x,y) – upper right hand corner of search region in green player zone
 	// Enable/disable printing of debug info from the WiFi class
 	private static final boolean ENABLE_DEBUG_WIFI_PRINT = true;
-
+	
+	/**
+	 * This method gets the parameters of the game using wifi
+	 * @return 0 if successful, 1 if failure
+	 */
 	@SuppressWarnings("rawtypes")
-	public static void getParameter() {
+	public static int getParameter() {
 		System.out.println("Running..");
 		// Initialize WifiConnection class
 		WifiConnection conn = new WifiConnection(SERVER_IP, TEAM_NUMBER, ENABLE_DEBUG_WIFI_PRINT);
@@ -156,12 +164,10 @@ public class Wifi {
 			GameData.SG_UR_y = ((Long) data.get("SG_UR_y")).intValue();
 			System.out.println("Stored data to GameData class");
 			GameData.printString();
-
+			return 0;
 		} catch (Exception e) {
 			System.err.println("Error: " + e.getMessage());
+			return -1;
 		}
-
-		// Wait until user decides to end program
-		Button.waitForAnyPress();
 	}
 }

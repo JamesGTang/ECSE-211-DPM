@@ -3,12 +3,14 @@ package ca.mcgill.ecse211.lightsensor;
 import ca.mcgill.ecse211.display.Display;
 
 import ca.mcgill.ecse211.model.Robot;
-import lejos.hardware.Button;
 import lejos.hardware.Sound;
 
+/**
+ * This class contains method for testing the color detection of the robot
+ * @author jamestang
+ *
+ */
 public class ColorTest extends Thread {
-	private LightSensorController cont;
-	private static float[] usData = new float[Robot.usSensor.sampleSize()];
 	public static Display colorDisplay;
 	public double redBlockMean[] = new double[] { 97, 12, 5.6 };
 	public double blueBlockMean[] = new double[] { 12.65, 57, 25.9 };
@@ -24,15 +26,12 @@ public class ColorTest extends Thread {
 	// constructor here
 	public ColorTest() {
 	}
-	
+	/**
+	 * Runs the thread
+	 */
 	public void run() {
 		Robot.lcd.clear();
 		while (true) {
-			//Robot.colorProvider.fetchSample(color, 0); // acquire data
-			//Robot.usSensor.fetchSample(usData, 0);
-			
-			// print to RSV file format up to two floating point precision
-			//System.out.printf("%.2f,%.2f,%.2f,%.2f,%s\n",lightVal[0],lightVal[1],lightVal[1],DISTANCE,EXPECTED_COLOR);
 			float color[]=Robot.getColor();
 			double lightVal[] = new double[3];
 			lightVal[0] = color[0] * 1000.0; // R value
@@ -83,8 +82,9 @@ public class ColorTest extends Thread {
 			return false;
 	}
 	/**
-	 * This method calculates the color of the block using RGB value
-	 * @return
+	 * Test if light val given is color red
+	 * @param lightval the array of values of R G B
+	 * @return true if it is red
 	 */
 	private boolean isRed(double lightval[]) {
 		
@@ -99,7 +99,11 @@ public class ColorTest extends Thread {
 		} else
 			return false;
 	}
-
+	/**
+	 * Test if light val given is color blue
+	 * @param lightval the array of values of R G B
+	 * @return true if it is blue
+	 */
 	private boolean isBlue(double lightval[]) {
 		if (lightval[0] < blueBlockMean[0] + 2 * blueBlockDev[0] 
 				&& lightval[0] > blueBlockMean[0] - 2 * blueBlockDev[0]
@@ -112,7 +116,11 @@ public class ColorTest extends Thread {
 		} else
 			return false;
 	}
-
+	/**
+	 * Test if light val given is color yellow
+	 * @param lightval the array of values of R G B
+	 * @return true if it is yellow
+	 */
 	private boolean isYellow(double lightval[]) {
 		if (lightval[0] < yellowBlockMean[0] + 2 * yellowBlockDev[0]
 				&& lightval[0] > yellowBlockMean[0] - 2 * yellowBlockDev[0]
@@ -125,7 +133,11 @@ public class ColorTest extends Thread {
 		} else
 			return false;
 	}
-
+	/**
+	 * Test if light val given is color white
+	 * @param lightval the array of values of R G B
+	 * @return true if it is white
+	 */
 	private boolean isWhite(double lightval[]) {
 		if (lightval[0] < whiteBlockMean[0] + 2 * whiteBlockDev[0]
 				&& lightval[0] > whiteBlockMean[0] - 2 * whiteBlockDev[0]

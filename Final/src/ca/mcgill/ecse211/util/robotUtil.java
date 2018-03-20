@@ -1,5 +1,10 @@
 package ca.mcgill.ecse211.util;
 
+/**
+ * This class contains utilities for the robot
+ * @author jamestang
+ *
+ */
 public class robotUtil {
 	
 	/**

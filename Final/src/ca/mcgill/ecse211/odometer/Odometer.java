@@ -13,7 +13,11 @@ package ca.mcgill.ecse211.odometer;
 import java.util.LinkedList;
 
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
-
+/**
+ * This class provides methods for robot to record its movement
+ * @author jamestang
+ *
+ */
 public class Odometer extends OdometerData implements Runnable {
 
   private OdometerData odoData;

@@ -3,7 +3,11 @@ package ca.mcgill.ecse211.controller;
 import ca.mcgill.ecse211.model.Robot;
 import ca.mcgill.ecse211.odometer.Odometer;
 import lejos.hardware.Sound;
-
+/**
+ * This class provides methods for localizing the robot to starting corner using light sensor
+ * @author jamestang
+ *
+ */
 public class LightLocalizer {
 	private Odometer odometer;
 	
@@ -14,7 +18,9 @@ public class LightLocalizer {
 	public LightLocalizer(Odometer odometer) {
 		this.odometer=odometer;
 	}
-	
+	/**
+	 * This method uses light sensor to localize the robot to starting corner
+	 */
 	public void localize() {
 		// reset odometer
 		this.odometer.setXYT(0, 0, 0);

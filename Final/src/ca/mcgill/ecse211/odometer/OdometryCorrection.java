@@ -2,7 +2,11 @@ package ca.mcgill.ecse211.odometer;
 
 import ca.mcgill.ecse211.model.Robot;
 import lejos.hardware.Sound;
-
+/**
+ * This class contains methods for correcting the odometer
+ * @author jamestang
+ *
+ */
 public class OdometryCorrection implements Runnable {
 	private static final long CORRECTION_PERIOD = 10;
 	private static final int BLACK_THRESHOLD = 300;

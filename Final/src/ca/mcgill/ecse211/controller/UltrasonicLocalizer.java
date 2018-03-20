@@ -5,6 +5,11 @@ import ca.mcgill.ecse211.odometer.Odometer;
 import ca.mcgill.ecse211.ultrasonic.UltrasonicController;
 import lejos.hardware.Sound;
 
+/**
+ * This class provides methods that localizes the robot using ultrasonic sensor
+ * @author jamestang
+ *
+ */
 public class UltrasonicLocalizer implements UltrasonicController{
 	private double dist=50;
 	// assume of robot is placed at original, the maximum usable distance used for localizalition
@@ -24,7 +29,7 @@ public class UltrasonicLocalizer implements UltrasonicController{
 		this.odometer=odometer;
 	}
 	/**
-	 * This method localizes the robot 
+	 * This method localizes the robot using ultrasonic sensor
 	 */
 	public void localize() {
 		System.out.println("Localization started");

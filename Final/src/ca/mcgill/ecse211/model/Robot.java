@@ -32,6 +32,9 @@ import lejos.robotics.SampleProvider;
  *	Ultrasonic base motor: Motor Port A
  */
 public class Robot {
+	// competition related data
+	public static int TEAM_NUMBER=5;
+	
 	// robot drive system related data
 	public static final double WHEEL_RAD = 2.2;
 	public static final double TRACK = 15.8;
@@ -58,22 +61,24 @@ public class Robot {
 	public static Display odometryDisplay;
 	public static int xStartingOffset=1; //this is starting offset for odometer corrrection depends on SC, number of tiles already passed when robot arrives at starting postion
 	public static int yStartingOffset=1;
+	
+	// robot sc data
+	public static double startingX;
+	public static double startingY;
+	
 	/**
 	 * This method initialize the robot into original state
 	 * @throws OdometerExceptions 
 	 */
-	public static int init(int startingPoint) throws OdometerExceptions {
+	public static int init() throws OdometerExceptions {
 		usMotor.setSpeed(100);
 		usMotor.setAcceleration(50);
 		//System.out.println("Robot initialized with odometer, odometer display");
 		driveState=DriveState.STOP;
-		loc=LocalizationCategory.NONE;
-		Starting_Corner=startingPoint;
-		
+		loc=LocalizationCategory.NONE;	
 		// Odometer related objects
 		odometer = Odometer.getOdometer(Robot.leftMotor, Robot.rightMotor, Robot.TRACK, Robot.WHEEL_RAD);
 		odometryDisplay = new Display(Robot.lcd);
-		
 		Thread odoThread = new Thread(odometer);
 		odoThread.start();
 		Thread odoDisplayThread = new Thread(odometryDisplay);
@@ -115,6 +120,8 @@ public class Robot {
 	
 	/**
 	 * This method put the robot in an assigned speed drive forward
+	 * @param fwd_speed the forward speed
+	 * @param acceleration_speed the acceleration speed
 	 */
 	public static void driveForwardWithSpeed(int fwd_speed,int acceleration_speed) {
 		leftMotor.setSpeed(fwd_speed);
@@ -311,11 +318,18 @@ public class Robot {
 	}
 	// define textLCD
 	public static TextLCD lcd = LocalEV3.get().getTextLCD();
-	
-	// define localization type of the robot
-	
+	/**
+	 * 
+	 * @return lcd
+	 */
 	public static TextLCD getLCD() {
 		return lcd;
+	}
+	/**
+	 * Clears the lcd screen
+	 */
+	public void clearLCD() {
+		lcd.clear();
 	}
 	
 	/**
@@ -343,24 +357,32 @@ public class Robot {
 	public static void setSCOdometer() {
 		if(Starting_Corner!=-1) {
 			switch (Starting_Corner) {
-			case 0:
-				// the robot is starting at lower left
-				odometer.setXYT(TILE_SIZE , TILE_SIZE , 0);
-				System.out.println("Robot starting from: "+Starting_Corner);
-				break;
 			case 1:
-				// the robot is starting at lower right
-				odometer.setXYT(TILE_SIZE*7, TILE_SIZE , 0);
+				// the robot is starting at lower left
+				startingX=TILE_SIZE;
+				startingY=TILE_SIZE;
+				odometer.setXYT(startingX , startingY , 0);
 				System.out.println("Robot starting from: "+Starting_Corner);
 				break;
 			case 2:
-				// the robot is starting at upper right
-				odometer.setXYT(TILE_SIZE*7 , TILE_SIZE*7 , 180);
+				// the robot is starting at lower right
+				startingX=TILE_SIZE*11;
+				startingY=TILE_SIZE*1;
+				odometer.setXYT(startingX , startingY , 0);
 				System.out.println("Robot starting from: "+Starting_Corner);
 				break;
 			case 3:
 				// the robot is starting at upper right
-				odometer.setXYT(TILE_SIZE*7 , TILE_SIZE, 180);
+				startingX=TILE_SIZE*11;
+				startingY=TILE_SIZE*11;
+				odometer.setXYT(startingX , startingY , 180);
+				System.out.println("Robot starting from: "+Starting_Corner);
+				break;
+			case 4:
+				// the robot is starting at upper right
+				startingX=TILE_SIZE*1;
+				startingY=TILE_SIZE*11;
+				odometer.setXYT(startingX , startingY , 180);
 				System.out.println("Robot starting from: "+Starting_Corner);
 				break;
 			default:
@@ -376,7 +398,7 @@ public class Robot {
 	 * SEARCH: medium, for searching and scanning the area
 	 * COR: slowest, for correcting robot's postion
 	 * 
-	 * @param type
+	 * @param type string DRIVE,SEARCH,COR,FAST
 	 */
 	public static void alterSpeed(String type) {
 		if(type=="DRIVE") {
@@ -393,8 +415,15 @@ public class Robot {
 			ACCELERATION_SPEED=150;
 		}
 	}
-	public void clearLCD() {
-		lcd.clear();
+
+	/**
+	 * Correct the robot's location
+	 * @param xExpected expected x location
+	 * @param yExpected expected y location
+	 */
+	public static void correctLocation(double xExpected,double yExpected) {
+		
 	}
+	
 
 }
