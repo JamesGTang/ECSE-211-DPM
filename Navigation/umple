@@ -1,0 +1,113 @@
+class Display
+{
+    isA Runnable;
+TextLCD lcd;
+  double[] position;
+  int DISPLAY_PERIOD;
+  0..* -- 1 TextLCD;
+  * -- * Lab3;
+}
+
+class Runnable
+{
+}
+
+class TextLCD
+{
+}
+
+class Lab3
+{
+  EV3LargeRegulatedMotor leftMotor;
+  EV3LargeRegulatedMotor rightMotor;
+  TextLCD lcd;
+  double WHEEL_RAD;
+  double TRACK;
+  EV3UltrasonicSensor usSensor;
+  SampleProvider usDistance;
+  int[] xPos;
+  int[] yPos;
+  Odometer odometer;
+  * -- * Odometer;
+}
+
+class SampleProvider
+{
+  1 -- 1 UltrasonicController;
+}
+
+class UltrasonicController
+{
+}
+
+class Odometer
+{
+  1 -- 1 OdometerData;
+  1 -- 0..* OdometerExcelption;
+  1 -- * OdometerDisplay;
+}
+
+class OdometerDisplay
+{
+}
+
+class EV3UltrasonicSensor
+{
+  * -- 1 UltrasonicPoller;
+}
+
+class Navigation
+{
+    isA Thread;
+int FORWARD_SPEED;
+  int ROTATE_SPEED;
+  double TILE_SIZE;
+  int ODOMETER_PERIOD;
+  double xCurrent;
+double yCurrent;
+double thetaCurrent;
+boolean isFinished;
+  1 -- 1 UltrasonicController;
+  * -- * Odometer;
+static double OFF_CONST;
+}
+
+class NavigationAvoid
+{
+    isA Thread;
+int FORWARD_SPEED;
+  int ROTATE_SPEED;
+  double TILE_SIZE;
+  int ODOMETER_PERIOD;
+  double xCurrent;
+double yCurrent;
+double thetaCurrent;
+boolean isFinished;
+int xDirCompensation;
+boolean isAvoided;
+static double OFF_CONST;
+  1 -- 1 UltrasonicController;
+  * -- * Odometer;
+}
+
+
+class Thread
+{
+}
+
+class OdometerData
+{
+  double x;
+  double y;
+  doule theta;
+  int numberOfIsntances;
+  int maxInstances;
+}
+
+class OdometerExcelption
+{
+}
+
+class UltrasonicPoller
+{
+}
