@@ -3,7 +3,6 @@ package ca.mcgill.ecse211.controller;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-
 import ca.mcgill.ecse211.data.ColorBlock;
 import ca.mcgill.ecse211.data.GameData;
 import ca.mcgill.ecse211.model.Robot;
