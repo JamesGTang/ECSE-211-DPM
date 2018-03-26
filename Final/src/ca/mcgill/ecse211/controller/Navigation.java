@@ -23,7 +23,7 @@ public class Navigation {
 		// change the speed back for small turn	
 		System.out.println("Going to Tunnel");
 		Robot.alterSpeed("DRIVE");
-		Robot.squareTravelTo((GameData.TN_LL_x-0.5)*Robot.TILE_SIZE,(GameData.TN_LL_y-0.5)*Robot.TILE_SIZE);
+		Robot.squareTravelTo((GameData.TN_LL_x+0.5)*Robot.TILE_SIZE,(GameData.TN_LL_y-0.5)*Robot.TILE_SIZE);
 		System.out.println("Arrived at Tunnel Entrance, x/y/theta"+Odometer.getOdometer().getXYT()[0]+"|"+Odometer.getOdometer().getXYT()[1]+"|"+Odometer.getOdometer().getTheta());
 	}
 	/**
@@ -58,7 +58,7 @@ public class Navigation {
 		System.out.println("Going to Bridge");
 		Robot.alterSpeed("DRIVE");
 		Robot.squareTravelTo((GameData.BR_UR_x-0.5)*Robot.TILE_SIZE,(GameData.BR_UR_y+0.5)*Robot.TILE_SIZE);
-		System.out.println("Arrived at Tunnel Entrance, x/y/theta"+Odometer.getOdometer().getXYT()[0]+"|"+Odometer.getOdometer().getXYT()[1]+"|"+Odometer.getOdometer().getTheta());
+		System.out.println("Arrived at Bridge Entrance, x/y/theta"+Odometer.getOdometer().getXYT()[0]+"|"+Odometer.getOdometer().getXYT()[1]+"|"+Odometer.getOdometer().getTheta());
 	}
 	/**
 	 * This method lets the robot as green team cross bridge
@@ -80,7 +80,7 @@ public class Navigation {
 		System.out.println("Going to SC");
 		Robot.alterSpeed("DRIVE");
 		Robot.squareTravelTo(Robot.startingX,Robot.startingY);
-		System.out.println("Arrived at Tunnel Entrance, x/y/theta"+Odometer.getOdometer().getXYT()[0]+"|"+Odometer.getOdometer().getXYT()[1]+"|"+Odometer.getOdometer().getTheta());
+		System.out.println("Arrived at END, x/y/theta"+Odometer.getOdometer().getXYT()[0]+"|"+Odometer.getOdometer().getXYT()[1]+"|"+Odometer.getOdometer().getTheta());
 	}
 	/**
 	 * This method navigates the robot as red team to the entrance of the bridge

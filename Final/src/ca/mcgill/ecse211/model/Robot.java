@@ -27,8 +27,8 @@ import lejos.robotics.SampleProvider;
  *	Floor light sensor (downward facing): Sensor Port S3
  *	
  *	Motors:
- *	Left motor: Motor Port D
- *	Right motor: Motor Port B
+ *	Left motor: Motor Port B
+ *	Right motor: Motor Port D
  *	Ultrasonic base motor: Motor Port A
  */
 public class Robot {
@@ -382,6 +382,49 @@ public class Robot {
 				// the robot is starting at upper right
 				startingX=TILE_SIZE*1;
 				startingY=TILE_SIZE*11;
+				odometer.setXYT(startingX , startingY , 180);
+				System.out.println("Robot starting from: "+Starting_Corner);
+				break;
+			default:
+				break;
+			}
+		}else {
+			// starting corner is not set
+		}
+	}
+	
+	/**
+	 * This method sets the odometer for beta demo SC the robot is assigned to
+	 * important: the robot has x and y offset of one tile length from the origin after localization
+	 */
+	public static void setBetaSCOdometer() {
+		if(Starting_Corner!=-1) {
+			switch (Starting_Corner) {
+			case 1:
+				// the robot is starting at lower left
+				startingX=TILE_SIZE;
+				startingY=TILE_SIZE;
+				odometer.setXYT(startingX , startingY , 0);
+				System.out.println("Robot starting from: "+Starting_Corner);
+				break;
+			case 2:
+				// the robot is starting at lower right
+				startingX=TILE_SIZE*7;
+				startingY=TILE_SIZE*1;
+				odometer.setXYT(startingX , startingY , 0);
+				System.out.println("Robot starting from: "+Starting_Corner);
+				break;
+			case 3:
+				// the robot is starting at upper right
+				startingX=TILE_SIZE*7;
+				startingY=TILE_SIZE*7;
+				odometer.setXYT(startingX , startingY , 180);
+				System.out.println("Robot starting from: "+Starting_Corner);
+				break;
+			case 4:
+				// the robot is starting at upper right
+				startingX=TILE_SIZE*1;
+				startingY=TILE_SIZE*7;
 				odometer.setXYT(startingX , startingY , 180);
 				System.out.println("Robot starting from: "+Starting_Corner);
 				break;

@@ -120,7 +120,7 @@ public class Wifi {
 
 				GameData.SG_UR_x = SG_UR_x;
 				GameData.SG_UR_y = SG_UR_y;
-				
+				return 1;	
 			}
 			System.out.println("Raw data from server: " + data);
 
