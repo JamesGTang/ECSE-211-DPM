@@ -44,7 +44,9 @@ public class LightLocalizer {
 		lightVal=Robot.getFloorColor();
 		// turn to check the other line
 		System.out.println("Turn 90");
+		Robot.alterSpeed("SUPER");
 		Robot.turnTo(Math.toRadians(90));
+		Robot.alterSpeed("SEARCH");
 		// we will turn counter clockwise until cross another line
 		while(lightVal>BLACK_THRESHOLD) {
 			Robot.driveForward();
@@ -57,11 +59,15 @@ public class LightLocalizer {
 		dX=odometer.getXYT()[0];
 		// revert back to original state
 		System.out.println("dX"+dX);
-		Robot.travelTo(-dX);
+		// update to save time
+		Robot.travelTo(-8);
+		Robot.alterSpeed("SUPER");
+		Robot.turnTo(Math.toRadians(-90));
+		Robot.travelTo(dY);
+		// Robot.travelTo(-dX);
 		// add correction here
-		Robot.travelTo(-dX , dY);
-		System.out.println("Aligning"+(270-odometer.getTheta()));
-		Robot.turnTo(Math.toRadians(-odometer.getTheta()));
-		
+		// Robot.travelTo(dY , dX);
+		// System.out.println("Aligning"+(270-odometer.getTheta()));
+		// Robot.turnTo(Math.toRadians(-odometer.getTheta()));
 	}	
 }

@@ -5,7 +5,6 @@ import ca.mcgill.ecse211.odometer.*;
 import ca.mcgill.ecse211.data.GameData;
 import ca.mcgill.ecse211.data.Wifi;
 import ca.mcgill.ecse211.lightsensor.ColorTest;
-import ca.mcgill.ecse211.lightsensor.LightSensorController;
 import ca.mcgill.ecse211.model.*;
 
 import ca.mcgill.ecse211.ultrasonic.UltrasonicPoller;
@@ -41,12 +40,17 @@ public class Main {
 		if (buttonChoice == Button.ID_LEFT) {
 			Sound.beepSequenceUp();
 			Robot.lcd.clear();
+			/*
 			ColorTest colorTest = new ColorTest();
 			colorTest.start();
 			// exit the system on button press
 			while (Button.waitForAnyPress() != Button.ID_ESCAPE);
 			System.exit(0);
-
+			*/
+			while(true) {
+				Robot.correctLocation(0, 0);
+				Button.waitForAnyPress();
+			}
 		} else if(buttonChoice==Button.ID_RIGHT) {	
 			/*-------- Get data from server----------*/
 			int ret=Wifi.getParameter();
@@ -63,7 +67,6 @@ public class Main {
 			}
 			
 			/*-------- Wait for game to start----------*/
-			Button.waitForAnyPress(); 
 			
 			/*-------- Localizations----------*/
 			UltrasonicLocalizer usLocal = new UltrasonicLocalizer(Odometer.getOdometer());
@@ -99,14 +102,15 @@ public class Main {
 			/*-------- Cross bridge/tunnel----------*/
 			Robot.correctLocation((GameData.TN_LL_x + 0.5) * Robot.TILE_SIZE,
 					(GameData.TN_LL_y - 0.5) * Robot.TILE_SIZE);
+			Robot.odometer.setTheta(0);
 			navigation.CrossTunnelAsGT();
 			/*-------- Navigation back to Bridge or tunnel entrance-----------*/
 			navigation.NavtoBridgeAsGT();
 			/*-------- Cross bridge or tunnel----------*/
 			Robot.correctLocation((GameData.SR_UR_x - 0.5) * Robot.TILE_SIZE,
 					(GameData.SR_LL_y - 0.5) * Robot.TILE_SIZE);
+			Robot.odometer.setTheta(180);
 			// this should be removed in final competition, turn robot backward
-			Robot.turnTo(Math.toRadians(180));
 			navigation.CrossBridgeAsGT();
 			/*-------- Navigation to ending point----------*/
 			navigation.NavtoSCAsGT();

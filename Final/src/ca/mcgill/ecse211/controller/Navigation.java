@@ -23,7 +23,9 @@ public class Navigation {
 		// change the speed back for small turn	
 		System.out.println("Going to Tunnel");
 		Robot.alterSpeed("DRIVE");
-		Robot.squareTravelTo((GameData.TN_LL_x+0.5)*Robot.TILE_SIZE,(GameData.TN_LL_y-0.5)*Robot.TILE_SIZE);
+		System.out.println("Nav to Tunnel at: "+((GameData.TN_LL_x+0.5)*Robot.TILE_SIZE)+((GameData.TN_LL_y-0.5)*Robot.TILE_SIZE));
+		Robot.travelTo((GameData.TN_LL_x+0.5)*Robot.TILE_SIZE,(GameData.TN_LL_y-1)*Robot.TILE_SIZE);
+		Robot.turnTo(-Math.toRadians(Odometer.getOdometer().getTheta()));
 		System.out.println("Arrived at Tunnel Entrance, x/y/theta"+Odometer.getOdometer().getXYT()[0]+"|"+Odometer.getOdometer().getXYT()[1]+"|"+Odometer.getOdometer().getTheta());
 	}
 	/**
@@ -33,8 +35,9 @@ public class Navigation {
 	public void CrossTunnelAsGT() throws OdometerExceptions {
 		// change the speed back for small turn	
 		System.out.println("Crossing Tunnel");
-		Robot.alterSpeed("DRIVE");
-		Robot.travelTo((GameData.TN_UR_y-GameData.TN_LL_y+1)*Robot.TILE_SIZE);
+		Robot.alterSpeed("SEARCH");
+		Robot.travelTo((GameData.TN_UR_x-0.5)*Robot.TILE_SIZE,(GameData.TN_UR_y+0.5)*Robot.TILE_SIZE);
+		Robot.turnTo(-Math.toRadians(Odometer.getOdometer().getTheta()));
 		System.out.println("Crossed tunnel, x/y/theta"+Odometer.getOdometer().getXYT()[0]+"|"+Odometer.getOdometer().getXYT()[1]+"|"+Odometer.getOdometer().getTheta());
 	}
 	
@@ -45,7 +48,7 @@ public class Navigation {
 	public void NavtoSearchZoneAsGT() throws OdometerExceptions {
 		// change the speed back for small turn	
 		System.out.println("Going to search zone");
-		Robot.alterSpeed("DRIVE");
+		Robot.alterSpeed("SEARCH");
 		Robot.squareTravelTo((GameData.SR_UR_x-0.5)*Robot.TILE_SIZE,(GameData.SR_LL_y-0.5)*Robot.TILE_SIZE);
 		System.out.println("Arrived searchzone, x/y/theta"+Odometer.getOdometer().getXYT()[0]+"|"+Odometer.getOdometer().getXYT()[1]+"|"+Odometer.getOdometer().getTheta());
 	}
@@ -57,7 +60,8 @@ public class Navigation {
 		// change the speed back for small turn	
 		System.out.println("Going to Bridge");
 		Robot.alterSpeed("DRIVE");
-		Robot.squareTravelTo((GameData.BR_UR_x-0.5)*Robot.TILE_SIZE,(GameData.BR_UR_y+0.5)*Robot.TILE_SIZE);
+		Robot.travelTo((GameData.BR_UR_x-0.5)*Robot.TILE_SIZE,(GameData.BR_UR_y+0.5)*Robot.TILE_SIZE);
+		Robot.turnTo(Math.toRadians(-180-Odometer.getOdometer().getTheta()));
 		System.out.println("Arrived at Bridge Entrance, x/y/theta"+Odometer.getOdometer().getXYT()[0]+"|"+Odometer.getOdometer().getXYT()[1]+"|"+Odometer.getOdometer().getTheta());
 	}
 	/**
@@ -67,8 +71,9 @@ public class Navigation {
 	public void CrossBridgeAsGT() throws OdometerExceptions {
 		// change the speed back for small turn	
 		System.out.println("Crossing Bridge");
-		Robot.alterSpeed("DRIVE");
-		Robot.travelTo((GameData.BR_UR_y-GameData.BR_LL_y+1)*Robot.TILE_SIZE);
+		Robot.alterSpeed("SEARCH");
+		Robot.travelTo((GameData.BR_LL_x+0.5)*Robot.TILE_SIZE,(GameData.BR_LL_y-0.5)*Robot.TILE_SIZE);
+		Robot.turnTo(Math.toRadians(-180-Odometer.getOdometer().getTheta()));
 		System.out.println("Crossed bridge, x/y/theta"+Odometer.getOdometer().getXYT()[0]+"|"+Odometer.getOdometer().getXYT()[1]+"|"+Odometer.getOdometer().getTheta());
 	}
 	/**
@@ -79,7 +84,8 @@ public class Navigation {
 		// change the speed back for small turn	
 		System.out.println("Going to SC");
 		Robot.alterSpeed("DRIVE");
-		Robot.squareTravelTo(Robot.startingX,Robot.startingY);
+		Robot.travelTo(Robot.startingX,Robot.startingY);
+		Robot.turnTo(-Math.toRadians(Odometer.getOdometer().getTheta()));
 		System.out.println("Arrived at END, x/y/theta"+Odometer.getOdometer().getXYT()[0]+"|"+Odometer.getOdometer().getXYT()[1]+"|"+Odometer.getOdometer().getTheta());
 	}
 	/**

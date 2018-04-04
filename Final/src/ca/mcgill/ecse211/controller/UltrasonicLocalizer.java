@@ -3,6 +3,7 @@ package ca.mcgill.ecse211.controller;
 import ca.mcgill.ecse211.model.Robot;
 import ca.mcgill.ecse211.odometer.Odometer;
 import ca.mcgill.ecse211.ultrasonic.UltrasonicController;
+import ca.mcgill.ecse211.util.robotUtil;
 import lejos.hardware.Sound;
 
 /**
@@ -33,18 +34,18 @@ public class UltrasonicLocalizer implements UltrasonicController{
 	 */
 	public void localize() {
 		System.out.println("Localization started");
+		Robot.alterSpeed("SEARCH");
 		// setAcceleration and speed to very slow for accurate reading
 		// falling edge: robot is facing away from the wall
-		Robot.usMotor.setSpeed(50);
+		Robot.usMotor.setSpeed(100);
 		Robot.usMotor.rotateTo(0);
 		if(Robot.loc==Robot.LocalizationCategory.FALLING_EDGE) {
 			// the robot detects a falling edge, switch direction and detect another falling edge
 			System.out.println("Falling edge selected");
-			
 			// trap process until valid data is received
 			while(dist>maxD) {
 				// find the left wall
-				Robot.turn("LEFT");
+				Robot.turn("RIGHT");
 			}
 			Robot.stop();
 			
@@ -55,11 +56,10 @@ public class UltrasonicLocalizer implements UltrasonicController{
 			//revert 90 degree
 			System.out.println("Start turning right now");
 			Robot.turnTo(Math.toRadians(-180));
-			
 			// try to find the other falling edge
 			while(dist>maxD) {
 				// find the left wall
-				Robot.turn("RIGHT");
+				Robot.turn("LEFT");
 			}
 			Robot.stop();
 			
@@ -68,21 +68,23 @@ public class UltrasonicLocalizer implements UltrasonicController{
 			rAngle=this.odometer.getTheta();			
 			System.out.println("Right Turn finished "+rAngle);
 			// after both angle has been found
-			Robot.turnTo(Math.toRadians(((rAngle-lAngle)/2-OFFSET_CONST)/OFFSET_CONST));
+			Robot.turnTo(Math.toRadians((lAngle - rAngle) / 2 +135));
+			System.out.println("Finished localization");
+			System.out.println("Compensation: " + ((lAngle - rAngle) / 2 +135));
 			// correct heading here
 			if(Robot.runDiagonistic()==1) {
 				verifyCorrection();
 			}
 			System.out.println("Finished localization");
-			System.out.println("Compensation: "+((rAngle-lAngle)/2-OFFSET_CONST));
 			
 		}else if(Robot.loc==Robot.LocalizationCategory.RISING_EDGE) {
 			// the robot detects a falling edge, switch direction and detect another falling edge
 			System.out.println("Rising edge selected");
 			// trap process until valid data is received
+			Robot.alterSpeed("SEARCH");
 			while (dist < maxD) {
 				// find the left wall
-				Robot.turn("RIGHT");
+				Robot.turn("LEFT");
 			}
 			Robot.stop();
 			
@@ -92,28 +94,28 @@ public class UltrasonicLocalizer implements UltrasonicController{
 			System.out.println("Left Turn finished " + lAngle);
 			// revert 90 degree
 			System.out.println("Start left right now");
+			Robot.alterSpeed("SEARCH");
 			Robot.turnTo(Math.toRadians(90));
-
+			Robot.alterSpeed("SEARCH");
 			// try to find the other falling edge
 			while (dist < maxD) {
 				// find the left wall
-				Robot.turn("LEFT");
+				Robot.turn("RIGHT");
 			}
 			Robot.leftMotor.stop(true);
 			Robot.rightMotor.stop(false);
 			// beep once for signaling
 			Sound.beep();
-			System.out.println("Right Turn finished " + rAngle);
 			rAngle = this.odometer.getTheta();
+			System.out.println("Right Turn finished " + rAngle);
 			// after both angle has been found
-			Robot.turnTo(Math.toRadians(((rAngle - lAngle) / 2 + OFFSET_CONST+135)/OFFSET_CONST));
+			Robot.turnTo(Math.toRadians((rAngle - lAngle) / 2 +45));
 			System.out.println("Finished localization");
-			System.out.println("Compensation: " + ((rAngle - lAngle) / 2 + OFFSET_CONST+135));
+			System.out.println("Compensation: " + ((rAngle - lAngle) / 2 +45));
 			// correct heading here
 			if(Robot.runDiagonistic()==1) {
 				verifyCorrection();
 			}
-			
 		}else {
 			// the category is not set, abort
 			Robot.lcd.clear();
@@ -142,12 +144,11 @@ public class UltrasonicLocalizer implements UltrasonicController{
 	 * @return none
 	 * This method verifies the falling edge and rising edge is applied correct and check if any mechanical error
 	 */
-	public void verifyCorrection() {
-
-		
-		Robot.alterSpeed("DRIVE");
+	public void verifyCorrection() {		
+		Robot.alterSpeed("FAST");
 		// turn usMotor 90 degree to face west wall
-		Robot.usMotor.setSpeed(50);
+		Robot.usMotor.setSpeed(150);
+		Robot.usMotor.setAcceleration(1000);
 		Robot.usMotor.rotateTo(90);
 		// get distance at this point 
 		xBefore=dist;
@@ -170,7 +171,7 @@ public class UltrasonicLocalizer implements UltrasonicController{
 			//do nothing here
 		}
 		Robot.alterSpeed("FAST");
-		
+		Robot.usMotor.rotate(-90);
 		
 	}
 }

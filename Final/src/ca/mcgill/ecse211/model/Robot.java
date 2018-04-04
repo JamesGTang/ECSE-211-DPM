@@ -36,8 +36,8 @@ public class Robot {
 	public static int TEAM_NUMBER=5;
 	
 	// robot drive system related data
-	public static final double WHEEL_RAD = 2.2;
-	public static final double TRACK = 15.8;
+	public static final double WHEEL_RAD = 2.1;
+	public static final double TRACK = 12.1;
 	public static final double TILE_SIZE = 30.48;
 	private static int FORWARD_SPEED = 150;
 	private static int ACCELERATION_SPEED=100;
@@ -49,7 +49,8 @@ public class Robot {
 	public static double usSensorAngle=15;  // angle for ultrasonic sensor detection, which correlates to distance
 	public static final double forwardLightSensorOffset=1.5; // how far the forward facing light sensor is from the ultrasonic sensor
 	public static int usMotorAngle=0;
-	private static double OFF_CONST=1.02;
+	private static double OFF_CONST=1.00;
+	private static final int BLACK_THRESHOLD=300;
 	
 	// robot state related data
 	public static DriveState driveState;
@@ -140,8 +141,8 @@ public class Robot {
 		rightMotor.setSpeed(FORWARD_SPEED);
 		leftMotor.setAcceleration(ACCELERATION_SPEED);
 		rightMotor.setAcceleration(ACCELERATION_SPEED);
-		leftMotor.forward();
-		rightMotor.forward();
+		leftMotor.backward();
+		rightMotor.backward();
 	}
 	
 	/**
@@ -154,10 +155,10 @@ public class Robot {
 		Robot.leftMotor.setAcceleration(ACCELERATION_SPEED);
 		Robot.rightMotor.setAcceleration(ACCELERATION_SPEED);
 		
-		if(direction=="LEFT") {
+		if(direction=="RIGHT") {
 			Robot.leftMotor.forward();
 			Robot.rightMotor.backward();
-		}else if(direction=="RIGHT") {
+		}else if(direction=="LEFT") {
 			Robot.leftMotor.backward();
 			Robot.rightMotor.forward();
 		}
@@ -293,10 +294,15 @@ public class Robot {
 	public static SampleProvider colorProvider=colorSensor.getRGBMode();
 	private static float[] color=new float[Robot.colorProvider.sampleSize()];
 	
-	// define floor light sensor
+	// define floor light sensor1
 	public static EV3ColorSensor floorColorSensor=new EV3ColorSensor(SensorPort.S3);
 	public static SampleProvider floorColorProvider=floorColorSensor.getRedMode();
 	private static float[] floorColor=new float[Robot.floorColorProvider.sampleSize()];
+	
+	// define floor light sensor2
+	public static EV3ColorSensor floorColorLeftSensor=new EV3ColorSensor(SensorPort.S1);
+	public static SampleProvider floorColorLeftProvider=floorColorLeftSensor.getRedMode();
+	private static float[] floorColorLeft=new float[Robot.floorColorLeftProvider.sampleSize()];
 	
 	/**
 	 * This method fetch the color value from the forward light sensor
@@ -307,6 +313,7 @@ public class Robot {
 		return color;
 	}
 	
+	
 	/**
 	 * This method fetch the color value from floor light sensor
 	 * @return float: the value of light from light sensor
@@ -314,6 +321,16 @@ public class Robot {
 	public static float getFloorColor() {
 		Robot.floorColorProvider.fetchSample(floorColor, 0);
 		float lightVal=floorColor[0]*1000;
+		return lightVal;
+	}
+	
+	/**
+	 * This method fetch the color value from left floor light sensor
+	 * @return float: the value of light from light sensor
+	 */
+	public static float getLeftFloorColor() {
+		Robot.floorColorLeftProvider.fetchSample(floorColorLeft, 0);
+		float lightVal=floorColorLeft[0]*1000;
 		return lightVal;
 	}
 	// define textLCD
@@ -357,32 +374,32 @@ public class Robot {
 	public static void setSCOdometer() {
 		if(Starting_Corner!=-1) {
 			switch (Starting_Corner) {
-			case 1:
+			case 0:
 				// the robot is starting at lower left
 				startingX=TILE_SIZE;
 				startingY=TILE_SIZE;
 				odometer.setXYT(startingX , startingY , 0);
 				System.out.println("Robot starting from: "+Starting_Corner);
 				break;
-			case 2:
+			case 1:
 				// the robot is starting at lower right
 				startingX=TILE_SIZE*11;
 				startingY=TILE_SIZE*1;
-				odometer.setXYT(startingX , startingY , 0);
+				odometer.setXYT(startingX , startingY , 270);
+				System.out.println("Robot starting from: "+Starting_Corner);
+				break;
+			case 2:
+				// the robot is starting at upper right
+				startingX=TILE_SIZE*11;
+				startingY=TILE_SIZE*11;
+				odometer.setXYT(startingX , startingY , 180);
 				System.out.println("Robot starting from: "+Starting_Corner);
 				break;
 			case 3:
 				// the robot is starting at upper right
-				startingX=TILE_SIZE*11;
-				startingY=TILE_SIZE*11;
-				odometer.setXYT(startingX , startingY , 180);
-				System.out.println("Robot starting from: "+Starting_Corner);
-				break;
-			case 4:
-				// the robot is starting at upper right
 				startingX=TILE_SIZE*1;
 				startingY=TILE_SIZE*11;
-				odometer.setXYT(startingX , startingY , 180);
+				odometer.setXYT(startingX , startingY ,90);
 				System.out.println("Robot starting from: "+Starting_Corner);
 				break;
 			default:
@@ -400,31 +417,33 @@ public class Robot {
 	public static void setBetaSCOdometer() {
 		if(Starting_Corner!=-1) {
 			switch (Starting_Corner) {
-			case 1:
+			case 0:
 				// the robot is starting at lower left
 				startingX=TILE_SIZE;
 				startingY=TILE_SIZE;
 				odometer.setXYT(startingX , startingY , 0);
 				System.out.println("Robot starting from: "+Starting_Corner);
 				break;
-			case 2:
+			case 1:
 				// the robot is starting at lower right
 				startingX=TILE_SIZE*7;
 				startingY=TILE_SIZE*1;
+				Robot.turnTo(Math.toRadians(90));
 				odometer.setXYT(startingX , startingY , 0);
 				System.out.println("Robot starting from: "+Starting_Corner);
 				break;
-			case 3:
+			case 2:
 				// the robot is starting at upper right
 				startingX=TILE_SIZE*7;
 				startingY=TILE_SIZE*7;
 				odometer.setXYT(startingX , startingY , 180);
 				System.out.println("Robot starting from: "+Starting_Corner);
 				break;
-			case 4:
+			case 3:
 				// the robot is starting at upper right
 				startingX=TILE_SIZE*1;
 				startingY=TILE_SIZE*7;
+				Robot.turnTo(Math.toRadians(90));
 				odometer.setXYT(startingX , startingY , 180);
 				System.out.println("Robot starting from: "+Starting_Corner);
 				break;
@@ -445,17 +464,26 @@ public class Robot {
 	 */
 	public static void alterSpeed(String type) {
 		if(type=="DRIVE") {
-			FORWARD_SPEED = 125;
-			ACCELERATION_SPEED=75;
+			FORWARD_SPEED=250;
+			ACCELERATION_SPEED=1000;
 		}else if(type=="SEARCH") {
 			FORWARD_SPEED = 150;
-			ACCELERATION_SPEED=75;
+			ACCELERATION_SPEED=150;
 		}else if(type=="COR") {
 			FORWARD_SPEED = 50;
-			ACCELERATION_SPEED=50;
+			ACCELERATION_SPEED=100;
 		}else if(type=="FAST") {
-			FORWARD_SPEED = 200;
-			ACCELERATION_SPEED=150;
+			FORWARD_SPEED = 300;
+			ACCELERATION_SPEED=1000;
+		} else if (type == "SLOW") {
+			FORWARD_SPEED = 50;
+			ACCELERATION_SPEED = 50;
+		}else if (type=="NORMAL") {
+			FORWARD_SPEED = 100;
+			ACCELERATION_SPEED = 500;
+		}else if(type=="SUPER") {
+			FORWARD_SPEED = 300;
+			ACCELERATION_SPEED = 500;
 		}
 	}
 
@@ -465,8 +493,56 @@ public class Robot {
 	 * @param yExpected expected y location
 	 */
 	public static void correctLocation(double xExpected,double yExpected) {
-		
+		Robot.alterSpeed("COR");
+		double leftLightVal=Robot.getLeftFloorColor();
+		double rightLightVal=Robot.getFloorColor();
+		double yLeft=0;
+		double yRight=0;
+		System.out.println("Light val at beginnign"+leftLightVal+" "+rightLightVal);
+		while(rightLightVal>BLACK_THRESHOLD&&leftLightVal>BLACK_THRESHOLD) {
+			Robot.driveBackward();
+			rightLightVal=Robot.getFloorColor();
+			leftLightVal=Robot.getLeftFloorColor();
+		}
+		Robot.stop();
+		// right wheel crossed first
+		if(rightLightVal<=BLACK_THRESHOLD) {
+			yRight=odometer.getY();
+			leftLightVal=Robot.getLeftFloorColor();
+			System.out.println("Leftlightval"+leftLightVal);
+			while(leftLightVal>BLACK_THRESHOLD) {
+				Robot.driveBackward();
+				leftLightVal=Robot.getLeftFloorColor();
+			}
+			Robot.stop();
+			yLeft=odometer.getY();
+			System.out.println("Right crossed first yRight/yLeft"+yRight+" "+yLeft);
+			double angleCor=Math.toRadians((Math.toDegrees(Math.atan((yRight-yLeft)/(TRACK+1)))));
+			if(odometer.getTheta()>=135) {
+				angleCor=-angleCor;
+				System.out.println("Heading backward");
+			}
+			Robot.turnTo(-angleCor*1.25);
+			System.out.println("Angle to be corrected: "+-Math.toDegrees(-angleCor)*1.25);
+		// left wheel crossed first
+		}else if(leftLightVal<=BLACK_THRESHOLD) {
+			yLeft=odometer.getY();
+			rightLightVal=Robot.getFloorColor();
+			System.out.println("rightlightval"+rightLightVal);
+			while(rightLightVal>BLACK_THRESHOLD) {
+				Robot.driveBackward();
+				rightLightVal=Robot.getFloorColor();
+			}
+			Robot.stop();
+			yRight=odometer.getY();
+			System.out.println("Left crossed first yRight/yLeft"+yRight+" "+yLeft);
+			double angleCor=Math.toRadians((Math.toDegrees(Math.atan((yRight-yLeft)/(TRACK+1)))));
+			if(odometer.getTheta()>=135) {
+				angleCor=-angleCor;
+				System.out.println("Heading backward");
+			}
+			Robot.turnTo(angleCor*1.25);
+			System.out.println("Angle to be corrected: "+-Math.toDegrees(angleCor)*1.25);
+		}
 	}
-	
-
 }

@@ -128,7 +128,7 @@ public class Wifi {
 			GameData.RedTeam = ((Long) data.get("RedTeam")).intValue();
 			GameData.GreenTeam = ((Long) data.get("GreenTeam")).intValue();
 			GameData.RedCorner = ((Long) data.get("RedCorner")).intValue();
-			GameData.GreenTeam = ((Long) data.get("GreenCorner")).intValue();
+			GameData.GreenCorner = ((Long) data.get("GreenCorner")).intValue();
 
 			GameData.OG = ((Long) data.get("OG")).intValue();
 			GameData.OR = ((Long) data.get("OR")).intValue();
@@ -142,7 +142,7 @@ public class Wifi {
 
 			GameData.Green_UR_x = ((Long) data.get("Green_UR_x")).intValue();
 			GameData.Green_UR_y = ((Long) data.get("Green_UR_y")).intValue();
-			GameData.TN_LL_y = ((Long) data.get("TN_LL_x")).intValue();
+			GameData.TN_LL_x = ((Long) data.get("TN_LL_x")).intValue();
 			GameData.TN_LL_y = ((Long) data.get("TN_LL_y")).intValue();
 
 			GameData.TN_UR_x = ((Long) data.get("TN_UR_x")).intValue();

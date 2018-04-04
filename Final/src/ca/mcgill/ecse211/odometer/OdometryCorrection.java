@@ -49,7 +49,7 @@ public class OdometryCorrection implements Runnable {
 			if (lightVal <= BLACK_THRESHOLD) {
 				Sound.beep();
 				// getting the theta value from odometer class
-				theta = odometer.theta;
+				theta = odometer.getTheta();
 				// check the postion of the robot
 				if ((340 < theta && theta <= 0) || (theta > 0 && theta < 20)) {
 					// x is incrementing
