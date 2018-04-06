@@ -17,15 +17,21 @@ import lejos.hardware.Sound;
  *
  */
 public class SearchTargetBlock {
+	// searchzone data
+	private int SZ_UR_X;
+	private int SZ_UR_Y;
+	private int SZ_LL_X;
+	private int	SZ_LL_Y;
+	private int tb;
 	private double distance;
 	// records which side of the search zone the robot is heading now
 	// 1: west 2: north 3: east 4:south -1: invalid
 	private int direction = -1;
-
 	private boolean isMovingX; // records which direction robot is moving at the moment
 
 	int colorTable[][];
 	private static float[] color = new float[Robot.colorProvider.sampleSize()];
+	
 	// maximun allowed distance for block discovery in that quadrant
 	private double xRange;
 	private double yRange;
@@ -36,7 +42,7 @@ public class SearchTargetBlock {
 	int counter = 0; // count the number of blocks in the colorBlockList
 	private boolean isTargetBlockFound = false; // this tracks if TB is found
 	double trueOffset;
-	int tb;
+	
 	public double redBlockMean[] = new double[] { 97, 12, 5.6 };
 	public double blueBlockMean[] = new double[] { 12.65, 57, 25.9 };
 	public double yellowBlockMean[] = new double[] { 114.4, 80.8, 8.33 };
@@ -48,7 +54,7 @@ public class SearchTargetBlock {
 	public double whiteBlockDev[] = new double[] { 7.280961704, 6.421787875, 2.607317883 };
 	long startTime;
 
-	public SearchTargetBlock(int tb) throws OdometerExceptions {
+	public SearchTargetBlock(int tb,int SZ_UR_X,int SZ_UR_Y,int SZ_LL_X,int SZ_LL_Y) throws OdometerExceptions {
 		// turn the sensor in right direction
 		Robot.usMotor.rotate(-180);
 		odometer = Odometer.getOdometer();
@@ -62,23 +68,28 @@ public class SearchTargetBlock {
 
 		System.out.println("Setting target block");
 		this.tb = tb;
+		System.out.println("Setting zone data");
+		this.SZ_LL_X=SZ_LL_X;
+		this.SZ_LL_Y=SZ_LL_Y;
+		this.SZ_UR_X=SZ_UR_X;
+		this.SZ_UR_Y=SZ_UR_Y;	
 		startTime = System.currentTimeMillis();
 	}
 	/**
 	 * Searches for targeted block as green team in red zone
 	 * @throws InterruptedException
 	 */
-	public void SearchTargetGT() throws InterruptedException {
+	public void SearchTarget() throws InterruptedException {
 		for (int i = 1; i <= 4; i++) {
-			if(System.currentTimeMillis()-startTime>=21000) {
-				System.out.println("Time up");
-				for(int k=0;k<6;k++) {
-					Sound.beep();
+			// use a minute and half to search
+			if(System.currentTimeMillis()-startTime>=90000) {
+				System.out.println("Abandoning search mission");
+				for(int k=0;k<3;k++) {
+					Sound.twoBeeps();
 				}
 				return;
 			}
 			// set the direction at start
-			Robot.alterSpeed("SEARCH");
 			Robot.driveForward();
 			direction = i;
 			if (isMovingX)
@@ -90,7 +101,7 @@ public class SearchTargetBlock {
 				// robot heading alone y
 				isMovingX = false;
 				System.out.println("Moving alone y, vertice:  " + direction);
-				double linearOffset = (GameData.SR_UR_y+ 0.5) * Robot.TILE_SIZE;
+				double linearOffset = (SZ_UR_Y+ 0.5) * Robot.TILE_SIZE;
 				// keep driving until the robot's y covers search zone y
 				while (odometer.getY() <= linearOffset) {
 					// if a block is detected
@@ -113,7 +124,7 @@ public class SearchTargetBlock {
 				// robot heading alone x
 				isMovingX = true;
 				System.out.println("Moving alone x, vertice:  " + direction);
-				double linearOffset = (GameData.SR_UR_x + 0.5) * Robot.TILE_SIZE;
+				double linearOffset = (SZ_UR_X + 0.5) * Robot.TILE_SIZE;
 				// keep driving until the robot's y covers search zone y
 				while (odometer.getX() <= linearOffset) {
 					// if a block is detected
@@ -135,7 +146,7 @@ public class SearchTargetBlock {
 				// robot heading alone y
 				isMovingX = false;
 				System.out.println("Moving alone y, vertice:  " + direction);
-				double linearOffset = (GameData.SR_LL_y- 0.5) * Robot.TILE_SIZE;
+				double linearOffset = (SZ_LL_Y- 0.5) * Robot.TILE_SIZE;
 				// keep driving until the robot's y covers search zone y
 				while (odometer.getY() >= linearOffset) {
 					// if a block is detected
@@ -157,7 +168,7 @@ public class SearchTargetBlock {
 				// robot heading alone x
 				isMovingX = true;
 				System.out.println("Moving alone x, vertice:  " + direction);
-				double linearOffset = (GameData.SR_LL_x - 0.5) * Robot.TILE_SIZE;
+				double linearOffset = (SZ_LL_X - 0.5) * Robot.TILE_SIZE;
 				// keep driving until the robot's y covers search zone y
 				while (odometer.getX() >= linearOffset) {
 					// if a block is detected

@@ -67,6 +67,9 @@ public class Robot {
 	public static double startingX;
 	public static double startingY;
 	
+	// from light sensor to robot's wheel
+	public static double lsToAxis=2;
+	
 	/**
 	 * This method initialize the robot into original state
 	 * @throws OdometerExceptions 
@@ -385,7 +388,8 @@ public class Robot {
 				// the robot is starting at lower right
 				startingX=TILE_SIZE*11;
 				startingY=TILE_SIZE*1;
-				odometer.setXYT(startingX , startingY , 270);
+				Robot.turnTo(Math.toRadians(90));
+				odometer.setXYT(startingX , startingY , 0);
 				System.out.println("Robot starting from: "+Starting_Corner);
 				break;
 			case 2:
@@ -399,7 +403,8 @@ public class Robot {
 				// the robot is starting at upper right
 				startingX=TILE_SIZE*1;
 				startingY=TILE_SIZE*11;
-				odometer.setXYT(startingX , startingY ,90);
+				Robot.turnTo(Math.toRadians(90));
+				odometer.setXYT(startingX , startingY ,180);
 				System.out.println("Robot starting from: "+Starting_Corner);
 				break;
 			default:
@@ -488,11 +493,30 @@ public class Robot {
 	}
 
 	/**
-	 * Correct the robot's location
-	 * @param xExpected expected x location
-	 * @param yExpected expected y location
+	 * This method uses correct location twice to make sure the robot is at the center of the tile
+	 * and then set the odometer to new location
+	 * @param xExpected: x position after correction
+	 * @param yExpected: y postion after correction
 	 */
-	public static void correctLocation(double xExpected,double yExpected) {
+	public static void centerRobot(double xExpected,double yExpected) {
+		double theta;
+		alignGridline();
+		Robot.travelTo(Robot.TILE_SIZE/2+Robot.lsToAxis);
+		Robot.turnTo(Math.toRadians(-90));
+		alignGridline();
+		Robot.travelTo(Robot.TILE_SIZE/2+Robot.lsToAxis);
+		Robot.turnTo(Math.toRadians(90));
+		System.out.println("Robot relocated to center of tile");
+		// set theta based on the heading of the robot
+		if(odometer.getTheta()<45||odometer.getTheta()>275) theta=0;
+		else if(odometer.getTheta()>145&&odometer.getTheta()<225) theta=180;
+		else theta=odometer.getTheta();
+		odometer.setXYT(xExpected, yExpected,theta);
+	}
+	/**
+	 * Align robot with the gridline
+	 */
+	public static void alignGridline() {
 		Robot.alterSpeed("COR");
 		double leftLightVal=Robot.getLeftFloorColor();
 		double rightLightVal=Robot.getFloorColor();
