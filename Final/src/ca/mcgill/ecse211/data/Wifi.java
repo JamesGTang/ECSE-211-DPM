@@ -11,7 +11,7 @@ import ca.mcgill.ecse211.data.GameData;
  */
 public class Wifi {
 	// ToDo: this must be changed before demo
-	private static final String SERVER_IP = "192.168.2.3";
+	private static final String SERVER_IP = "192.168.2.10";
 	private static final int TEAM_NUMBER = 5;
 	
 	// LocalizationData Attributes only used for testing and in case the wifi connection returns null object failed

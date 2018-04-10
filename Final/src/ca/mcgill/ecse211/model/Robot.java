@@ -68,7 +68,7 @@ public class Robot {
 	public static double startingY;
 	
 	// from light sensor to robot's wheel
-	public static double lsToAxis=2;
+	public static double lsToAxis=-2;
 	
 	/**
 	 * This method initialize the robot into original state
@@ -229,7 +229,7 @@ public class Robot {
 		double yCurrent=odometer.getY();
 		double thetaCurrent=odometer.getTheta();
 		System.out.println("Xdest,YDest: "+xDest+" "+yDest);
-		System.out.println("In the model: xCurrent,yCurrent,Theta"+xCurrent+" "+yCurrent+" "+thetaCurrent);
+		System.out.println("xCurrent,yCurrent,currentTheta"+xCurrent+" "+yCurrent+" "+thetaCurrent);
 		double dX=xDest-xCurrent;
 		double dY=yDest-yCurrent;
 		double linearDistance=robotUtil.getLinearDistance(dX, dY);
@@ -238,7 +238,6 @@ public class Robot {
 		 */
 		double angularDistance=Math.atan2(dX,dY)-Math.toRadians(thetaCurrent);
 
-		System.out.println("Angle before conversion: "+angularDistance);
 		turnTo(angularDistance);
 		// move the linear distance possible improvement here
 		travelTo(linearDistance);
@@ -257,7 +256,6 @@ public class Robot {
 		// convert coordinate to length
 		double dX=xDest-xCurrent;
 		double dY=yDest-yCurrent;
-		System.out.println("Covering dy to starting point");
 		Robot.travelTo(dY);
 		// calculate the angle to be turned before covering dx. first find the heading angle
 		double thetaCurrent=odometer.getTheta();
@@ -266,11 +264,9 @@ public class Robot {
 		if(xDest>=odometer.getX()) angularDistance=Math.toRadians(90);
 		else angularDistance=Math.toRadians(-90);
 		turnTo(angularDistance);
-		System.out.println("Covering dx to starting point");
 		travelTo(dX);
 		// turn back to align with y axis
 		turnTo(-angularDistance); 
-		System.out.println("In the sqaure travel: xCurrent,yCurrent,Theta"+odometer.getX()+" "+odometer.getY()+" "+odometer.getTheta());
 	}
 	
 	
@@ -470,21 +466,63 @@ public class Robot {
 	 * 
 	 */
 	public static void alterSpeed(String type) {		
-		if(type=="COR") {
-			FORWARD_SPEED = 50;
-			ACCELERATION_SPEED=100;
+		if(type.equals("COR")) {
+			FORWARD_SPEED = 100;
+			ACCELERATION_SPEED=150;
 		}else if (type=="NORMAL") {
 			FORWARD_SPEED = 100;
 			ACCELERATION_SPEED = 500;
-		}else if(type=="SEARCH") {
-			FORWARD_SPEED = 150;
+		}else if(type.equals("SEARCH")) {
+			FORWARD_SPEED = 175;
 			ACCELERATION_SPEED=500;
-		}if(type=="DRIVE") {
+		}else if(type=="DRIVE") {
 			FORWARD_SPEED=250;
 			ACCELERATION_SPEED=1000;
 		}else if(type=="FAST") {
 			FORWARD_SPEED = 300;
 			ACCELERATION_SPEED=1000;
+		}else {
+			FORWARD_SPEED = 150;
+			ACCELERATION_SPEED=500;
+			System.out.println("Speed type not found, applying default speed");
+		}
+	}
+	
+	/**
+	 * Method to alter the speed of the robot 
+	 * COR: 50/100
+	 * NORMAL: 100/500
+	 * SEARCH:150/500
+	 * DRIVE: 250/1000
+	 * FAST: 3001/1000
+	 * @param int type
+	 * 
+	 */
+	public static void alterSpeedWithInt(int type) {		
+		if(type==1) {
+			FORWARD_SPEED = 50;
+			ACCELERATION_SPEED=150;
+			//System.out.println("Changed speed type to 1");
+		}else if (type==2) {
+			FORWARD_SPEED = 100;
+			ACCELERATION_SPEED = 500;
+			//System.out.println("Changed speed type to 2");
+		}else if(type==3) {
+			FORWARD_SPEED = 175;
+			ACCELERATION_SPEED=500;
+			//System.out.println("Changed speed type to 3");
+		}else if(type==4) {
+			FORWARD_SPEED=250;
+			ACCELERATION_SPEED=1000;
+			//System.out.println("Changed speed type to 4");
+		}else if(type==5) {
+			FORWARD_SPEED = 300;
+			ACCELERATION_SPEED=1000;
+			//System.out.println("Changed speed type to 5");
+		}else {
+			FORWARD_SPEED = 150;
+			ACCELERATION_SPEED=500;
+			System.out.println("Speed type not found, applying default speed");
 		}
 	}
 	
@@ -499,12 +537,18 @@ public class Robot {
 	public static void centerRobot(double xExpected,double yExpected) {
 		double theta;
 		alignGridline();
+		if(odometer.getTheta()<45||odometer.getTheta()>275) theta=0;
+		else if(odometer.getTheta()>145&&odometer.getTheta()<225) theta=180;
+		else theta=odometer.getTheta();
+		Robot.alterSpeedWithInt(3);
 		Robot.travelTo(Robot.TILE_SIZE/2+Robot.lsToAxis);
+		//System.out.println("Theta when finishing relocation set one: "+odometer.getTheta());
 		Robot.turnTo(Math.toRadians(-90));
 		alignGridline();
-		Robot.travelTo(Robot.TILE_SIZE/2+Robot.lsToAxis);
+		Robot.alterSpeedWithInt(3);
+		Robot.travelTo(Robot.TILE_SIZE/2-4);
 		Robot.turnTo(Math.toRadians(90));
-		System.out.println("Robot relocated to center of tile");
+		//System.out.println("Robot relocated to center of tile");
 		// set theta based on the heading of the robot
 		if(odometer.getTheta()<45||odometer.getTheta()>275) theta=0;
 		else if(odometer.getTheta()>145&&odometer.getTheta()<225) theta=180;
@@ -515,12 +559,12 @@ public class Robot {
 	 * Align robot with the gridline
 	 */
 	public static void alignGridline() {
-		Robot.alterSpeed("COR");
+		Robot.alterSpeedWithInt(1);
 		double leftLightVal=Robot.getLeftFloorColor();
 		double rightLightVal=Robot.getFloorColor();
 		double yLeft=0;
 		double yRight=0;
-		System.out.println("Light val at beginnign"+leftLightVal+" "+rightLightVal);
+		//System.out.println("Light val at beginnign"+leftLightVal+" "+rightLightVal);
 		while(rightLightVal>BLACK_THRESHOLD&&leftLightVal>BLACK_THRESHOLD) {
 			Robot.driveBackward();
 			rightLightVal=Robot.getFloorColor();
@@ -531,40 +575,53 @@ public class Robot {
 		if(rightLightVal<=BLACK_THRESHOLD) {
 			yRight=odometer.getY();
 			leftLightVal=Robot.getLeftFloorColor();
-			System.out.println("Leftlightval"+leftLightVal);
+			//System.out.println("Leftlightval"+leftLightVal);
+			/*
+			if(leftLightVal>BLACK_THRESHOLD) {
+				// the robot is alright aligned perfectly
+				System.out.println("Already aligned");
+				return;
+			}*/
 			while(leftLightVal>BLACK_THRESHOLD) {
 				Robot.driveBackward();
 				leftLightVal=Robot.getLeftFloorColor();
 			}
+			
 			Robot.stop();
 			yLeft=odometer.getY();
-			System.out.println("Right crossed first yRight/yLeft"+yRight+" "+yLeft);
+			//System.out.println("Right crossed first yRight/yLeft"+yRight+" "+yLeft);
 			double angleCor=Math.toRadians((Math.toDegrees(Math.atan((yRight-yLeft)/(TRACK+1)))));
 			if(odometer.getTheta()>=135) {
 				angleCor=-angleCor;
-				System.out.println("Heading backward");
+				//System.out.println("Heading backward");
 			}
-			Robot.turnTo(-angleCor*1.25);
-			System.out.println("Angle to be corrected: "+-Math.toDegrees(-angleCor)*1.25);
+			Robot.turnTo(-Math.abs(angleCor*1.25));
+			//System.out.println("Angle to be corrected: "+-Math.abs(Math.toDegrees(-angleCor)*1.25));
 		// left wheel crossed first
 		}else if(leftLightVal<=BLACK_THRESHOLD) {
 			yLeft=odometer.getY();
 			rightLightVal=Robot.getFloorColor();
-			System.out.println("rightlightval"+rightLightVal);
+			//System.out.println("rightlightval"+rightLightVal);
+			/*
+			if(rightLightVal>BLACK_THRESHOLD) {
+				// the robot is alright aligned perfectly
+				System.out.println("Already aligned");
+				return;
+			}*/
 			while(rightLightVal>BLACK_THRESHOLD) {
 				Robot.driveBackward();
 				rightLightVal=Robot.getFloorColor();
 			}
 			Robot.stop();
 			yRight=odometer.getY();
-			System.out.println("Left crossed first yRight/yLeft"+yRight+" "+yLeft);
+			//System.out.println("Left crossed first yRight/yLeft"+yRight+" "+yLeft);
 			double angleCor=Math.toRadians((Math.toDegrees(Math.atan((yRight-yLeft)/(TRACK+1)))));
 			if(odometer.getTheta()>=135) {
 				angleCor=-angleCor;
-				System.out.println("Heading backward");
+				// System.out.println("Heading backward");
 			}
-			Robot.turnTo(angleCor*1.25);
-			System.out.println("Angle to be corrected: "+-Math.toDegrees(angleCor)*1.25);
+			Robot.turnTo(Math.abs(angleCor*1.25));
+			//System.out.println("Angle to be corrected: "+Math.abs(Math.toDegrees(angleCor)*1.25));
 		}
 	}
 }

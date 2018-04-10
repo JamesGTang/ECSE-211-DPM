@@ -6,7 +6,6 @@ import ca.mcgill.ecse211.data.Wifi;
 import ca.mcgill.ecse211.model.*;
 
 import ca.mcgill.ecse211.ultrasonic.UltrasonicPoller;
-import jdk.internal.jline.console.history.FileHistory;
 import lejos.hardware.Button;
 import lejos.hardware.Sound;
 
@@ -32,12 +31,10 @@ public class Main {
 			Robot.lcd.drawString("< Left | Right >", 0, 0);
 			Robot.lcd.drawString("L: Test, ", 0, 1);
 			Robot.lcd.drawString("R: Demo, ", 0, 2);
-			Robot.lcd.drawString("Please select", 0, 4);
-			Robot.lcd.drawString("============", 0, 5);
-			Robot.lcd.drawString("DPM Team 5", 0, 6);
-			Robot.lcd.drawString("CHIP", 0, 7);
-			Robot.lcd.drawString("By James.T @jamesgtang.com", 0, 8);
-			Robot.lcd.drawString("Xirui. Z", 0, 9);
+			Robot.lcd.drawString("DPM Team 5", 0, 3);
+			Robot.lcd.drawString("CHIP", 0, 4);
+			Robot.lcd.drawString("By JT@jamesgtang.com", 0, 5);
+			Robot.lcd.drawString("Xirui. Z", 0, 6);
 			
 			// Record choice (left or right press)
 			buttonChoice = Button.waitForAnyPress();
@@ -51,12 +48,16 @@ public class Main {
 			 * on button press while (Button.waitForAnyPress() != Button.ID_ESCAPE);
 			 * System.exit(0);
 			 */
+			
+			/*
 			boolean test=true;
 			for(int i=0;i<10;i++){
 				Robot.centerRobot(15.2,15.2);
+				Robot.odometer.setXYT(0, 0, 0);
 				Button.waitForAnyPress();
-			}
-			SearchTargetBlock searchTargetBlock=new SearchTargetBlock(3, 5, 5, 1, 1);
+			}*/
+			Robot.odometer.setXYT(Robot.TILE_SIZE/2, Robot.TILE_SIZE/2, 0);
+			SearchTargetBlock searchTargetBlock=new SearchTargetBlock(2, 4, 4, 1, 1);
 			searchTargetBlock.SearchTarget();
 			
 		} else if (buttonChoice == Button.ID_RIGHT) {
@@ -115,11 +116,10 @@ public class Main {
 				navigation.CrossTunnelAsGT();
 				/*-------- Navigation to Search zone-----------*/
 				navigation.NavtoSearchZoneAsGT();
-				Robot.turnTo(Math.toRadians(-90));
 				/*-------- Start Searching-----------*/
 				SearchTargetBlock searchTB = new SearchTargetBlock(GameData.OR, GameData.SR_UR_x, GameData.SR_UR_y,
 						GameData.SR_LL_x, GameData.SR_LL_y);
-				searchTB.SearchTarget();
+				//searchTB.SearchTarget();
 				/*-------- Navigation back to Bridge or tunnel entrance-----------*/
 				navigation.NavtoBridgeAsGT();
 				/*-------- Cross bridge or tunnel----------*/
@@ -146,11 +146,10 @@ public class Main {
 				navigation.CrossBridgeAsRT();
 				/*-------- Navigation to Search zone-----------*/
 				navigation.NavtoSearchZoneAsRT();
-				Robot.turnTo(Math.toRadians(-90));
 				/*-------- Start Searching-----------*/
 				SearchTargetBlock searchTB = new SearchTargetBlock(GameData.OG, GameData.SG_UR_x, GameData.SG_UR_y,
 						GameData.SG_LL_x, GameData.SG_LL_y);
-				searchTB.SearchTarget();
+				//searchTB.SearchTarget();
 				/*-------- Navigation back to tunnel entrance-----------*/
 				navigation.NavtoTunnelAsRT();
 				/*-------- Cross Tunnel----------*/
