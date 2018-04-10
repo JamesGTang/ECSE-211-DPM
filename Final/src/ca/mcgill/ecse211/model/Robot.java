@@ -460,37 +460,35 @@ public class Robot {
 		}
 	}
 	/**
-	 * Method to alter the speed of the robot
-	 * DRIVE: fastest, for navigation to a destination, 
-	 * SEARCH: medium, for searching and scanning the area
-	 * COR: slowest, for correcting robot's postion
+	 * Method to alter the speed of the robot 
+	 * COR: 50/100
+	 * NORMAL: 100/500
+	 * SEARCH:150/500
+	 * DRIVE: 250/1000
+	 * FAST: 3001/1000
+	 * @param string type
 	 * 
-	 * @param type string DRIVE,SEARCH,COR,FAST
 	 */
-	public static void alterSpeed(String type) {
-		if(type=="DRIVE") {
-			FORWARD_SPEED=250;
-			ACCELERATION_SPEED=1000;
-		}else if(type=="SEARCH") {
-			FORWARD_SPEED = 150;
-			ACCELERATION_SPEED=150;
-		}else if(type=="COR") {
+	public static void alterSpeed(String type) {		
+		if(type=="COR") {
 			FORWARD_SPEED = 50;
 			ACCELERATION_SPEED=100;
-		}else if(type=="FAST") {
-			FORWARD_SPEED = 300;
-			ACCELERATION_SPEED=1000;
-		} else if (type == "SLOW") {
-			FORWARD_SPEED = 50;
-			ACCELERATION_SPEED = 50;
 		}else if (type=="NORMAL") {
 			FORWARD_SPEED = 100;
 			ACCELERATION_SPEED = 500;
-		}else if(type=="SUPER") {
+		}else if(type=="SEARCH") {
+			FORWARD_SPEED = 150;
+			ACCELERATION_SPEED=500;
+		}if(type=="DRIVE") {
+			FORWARD_SPEED=250;
+			ACCELERATION_SPEED=1000;
+		}else if(type=="FAST") {
 			FORWARD_SPEED = 300;
-			ACCELERATION_SPEED = 500;
+			ACCELERATION_SPEED=1000;
 		}
 	}
+	
+	
 
 	/**
 	 * This method uses correct location twice to make sure the robot is at the center of the tile

@@ -6,12 +6,12 @@ import ca.mcgill.ecse211.data.Wifi;
 import ca.mcgill.ecse211.model.*;
 
 import ca.mcgill.ecse211.ultrasonic.UltrasonicPoller;
+import jdk.internal.jline.console.history.FileHistory;
 import lejos.hardware.Button;
 import lejos.hardware.Sound;
 
 /**
  * Main class of the robot
- * 
  * @author jamestang
  *
  */
@@ -30,9 +30,15 @@ public class Main {
 			Robot.lcd.clear();
 			// ask the user whether the motors should drive with obstacle avoidance
 			Robot.lcd.drawString("< Left | Right >", 0, 0);
-			Robot.lcd.drawString("L: Color test, ", 0, 1);
-			Robot.lcd.drawString("R: Beta Demo, ", 0, 2);
+			Robot.lcd.drawString("L: Test, ", 0, 1);
+			Robot.lcd.drawString("R: Demo, ", 0, 2);
 			Robot.lcd.drawString("Please select", 0, 4);
+			Robot.lcd.drawString("============", 0, 5);
+			Robot.lcd.drawString("DPM Team 5", 0, 6);
+			Robot.lcd.drawString("CHIP", 0, 7);
+			Robot.lcd.drawString("By James.T @jamesgtang.com", 0, 8);
+			Robot.lcd.drawString("Xirui. Z", 0, 9);
+			
 			// Record choice (left or right press)
 			buttonChoice = Button.waitForAnyPress();
 		} while (buttonChoice != Button.ID_LEFT && buttonChoice != Button.ID_RIGHT && buttonChoice != Button.ID_DOWN);
@@ -45,10 +51,14 @@ public class Main {
 			 * on button press while (Button.waitForAnyPress() != Button.ID_ESCAPE);
 			 * System.exit(0);
 			 */
-			while (true) {
-				Robot.centerRobot(0, 0);
+			boolean test=true;
+			for(int i=0;i<10;i++){
+				Robot.centerRobot(15.2,15.2);
 				Button.waitForAnyPress();
 			}
+			SearchTargetBlock searchTargetBlock=new SearchTargetBlock(3, 5, 5, 1, 1);
+			searchTargetBlock.SearchTarget();
+			
 		} else if (buttonChoice == Button.ID_RIGHT) {
 			/*-------- Get data from server----------*/
 			int ret = Wifi.getParameter();
@@ -95,7 +105,6 @@ public class Main {
 				// Important TODO: this must be changed!
 				Robot.setBetaSCOdometer();
 				// Robot.setSCOdometer();
-
 				Navigation navigation = new Navigation();
 				/*-------- Navigation to Tunnel entrance----------*/
 				navigation.NavtoTunnelAsGT();
@@ -129,7 +138,7 @@ public class Main {
 				// Robot.setSCOdometer();
 				Navigation navigation = new Navigation();
 				/*-------- Navigation to Bridge entrance----------*/
-				navigation.NavtoTunnelAsRT();
+				navigation.NavtoBridgeAsRT();
 				/*-------- Cross bridge----------*/
 				Robot.centerRobot((GameData.BR_UR_x - 0.5) * Robot.TILE_SIZE,
 						(GameData.BR_UR_y + 0.5) * Robot.TILE_SIZE);

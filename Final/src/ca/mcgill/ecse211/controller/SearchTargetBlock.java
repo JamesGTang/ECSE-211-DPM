@@ -312,7 +312,7 @@ public class SearchTargetBlock {
 			} else {
 				Sound.beep();
 				BlockColor = 0;
-				Robot.travelTo(1);
+				Robot.travelTo(-2);
 				
 				System.out.println("Touching block again and Calculate color");
 				color = Robot.getColor();
@@ -345,7 +345,10 @@ public class SearchTargetBlock {
 					isTargetBlockFound = true;
 					System.out.println("Light val: " + lightVal.toString());
 					System.out.println("Target found: " + BlockColor);
-					Sound.twoBeeps();
+					for(int k=0;k<3;k++) {
+						// beep three times to signal finding the target block
+						Sound.beep();
+					}
 					return;
 				} else {
 					ifFound = false;
